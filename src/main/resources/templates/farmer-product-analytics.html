@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Green Depo - Product Analytics</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .sidebar {
+            background-color: #198754;
+            color: white;
+            height: 100vh;
+            position: fixed;
+            padding-top: 20px;
+        }
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 10px 20px;
+            margin: 5px 0;
+        }
+        .sidebar .nav-link:hover {
+            color: white;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .sidebar .nav-link.active {
+            color: white;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-left: 4px solid white;
+        }
+        .sidebar .nav-link i {
+            margin-right: 10px;
+        }
+        .content {
+            margin-left: 250px;
+            padding: 20px;
+        }
+        .analytics-card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .stats-card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .stats-card i {
+            font-size: 2rem;
+            color: #198754;
+            margin-bottom: 10px;
+        }
+        .stats-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+        .stats-card p {
+            color: #6c757d;
+        }
+        .user-info {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 20px;
+        }
+        .user-info .username {
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+        }
+        .user-info .user-type {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+        .product-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .product-details {
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 sidebar">
+                <div class="user-info">
+                    <div class="username" sec:authentication="name">Username</div>
+                    <div class="user-type">Farmer</div>
+                </div>
+                
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/farmer-dashboard}">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/farmer/products}">
+                            <i class="bi bi-cart"></i> My Products
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/farmer/orders}">
+                            <i class="bi bi-bag"></i> Orders
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" th:href="@{/farmer/sales-analytics}">
+                            <i class="bi bi-graph-up"></i> Sales Analytics
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="bi bi-gear"></i> Settings
+                        </a>
+                    </li>
+                    <li class="nav-item mt-5">
+                        <form th:action="@{/logout}" method="post">
+                            <button type="submit" class="nav-link border-0 bg-transparent">
+                                <i class="bi bi-box-arrow-right"></i> Logout
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="col-md-10 content">
+                <div class="analytics-card">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h2><i class="bi bi-bar-chart-line text-success me-2"></i>Product Analytics</h2>
+                        <a th:href="@{/farmer/sales-analytics}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i> Back to Sales Analytics
+                        </a>
+                    </div>
+                    <p>Detailed sales performance for this product.</p>
+                </div>
+                
+                <!-- Product Info -->
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="analytics-card">
+                            <div th:if="${!#lists.isEmpty(product.images)}">
+                                <img th:src="@{'/product-image/' + ${product.productId} + '/0'}" alt="Product Image" class="product-image">
+                            </div>
+                            <div th:unless="${!#lists.isEmpty(product.images)}" class="d-flex justify-content-center align-items-center bg-light" style="height: 200px; border-radius: 8px; margin-bottom: 15px;">
+                                <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
+                            </div>
+                            
+                            <h4 th:text="${product.title}">Product Name</h4>
+                            <div class="product-details">
+                                <p><strong>Type:</strong> <span th:text="${product.productType + ' - ' + product.productName}">Type</span></p>
+                                <p><strong>Price:</strong> <span th:text="${'₹ ' + #numbers.formatDecimal(product.price, 0, 'COMMA', 2, 'POINT')}">₹0.00</span></p>
+                                <p><strong>Quantity Available:</strong> <span th:text="${product.availableStock}">0</span></p>
+                                <p><strong>Description:</strong> <span th:text="${product.description}">Description</span></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-8">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="stats-card">
+                                    <i class="bi bi-currency-dollar"></i>
+                                    <h3 th:text="${#numbers.formatDecimal(totalProductSales, 0, 'COMMA', 2, 'POINT')}">0.00</h3>
+                                    <p>Total Revenue</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="stats-card">
+                                    <i class="bi bi-box-seam"></i>
+                                    <h3 th:text="${totalQuantitySold}">0</h3>
+                                    <p>Units Sold</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="stats-card">
+                                    <i class="bi bi-percent"></i>
+                                    <h3 th:text="${totalQuantitySold > 0 ? #numbers.formatDecimal(totalProductSales / totalQuantitySold, 0, 'COMMA', 2, 'POINT') : '0.00'}">0.00</h3>
+                                    <p>Avg. Revenue per Unit</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Sales Trend Chart -->
+                        <div class="analytics-card mt-3">
+                            <h4 class="mb-3">Sales Trend</h4>
+                            <div class="chart-container">
+                                <canvas id="salesTrendChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Order History -->
+                <div class="analytics-card mt-4">
+                    <h4 class="mb-3">Order History</h4>
+                    
+                    <div th:if="${#lists.isEmpty(orderItems)}" class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i> No orders have been placed for this product yet.
+                    </div>
+                    
+                    <div th:unless="${#lists.isEmpty(orderItems)}" class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-success">
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Date</th>
+                                    <th>Quantity</th>
+                                    <th>Price</th>
+                                    <th>Total</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="item : ${orderItems}">
+                                    <td th:text="${item.order.orderNumber}">ORD-123456</td>
+                                    <td th:text="${#temporals.format(item.order.orderDate, 'dd MMM yyyy')}">01 Jan 2023</td>
+                                    <td th:text="${item.quantity}">1</td>
+                                    <td th:text="${'₹ ' + #numbers.formatDecimal(item.unitPrice, 0, 'COMMA', 2, 'POINT')}">₹0.00</td>
+                                    <td th:text="${'₹ ' + #numbers.formatDecimal(item.totalPrice, 0, 'COMMA', 2, 'POINT')}">₹0.00</td>
+                                    <td>
+                                        <span th:class="${'badge ' + (item.paymentStatus == 'PAID' ? 'bg-success' : 'bg-warning')}" 
+                                              th:text="${item.paymentStatus}">PAID</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:inline="javascript">
+        // Get sales data from Thymeleaf
+        const salesByDate = /*[[${salesByDate}]]*/ {};
+        
+        // Prepare data for chart
+        const dates = [];
+        const salesValues = [];
+        
+        // Convert Map to arrays for Chart.js and sort by date
+        const salesEntries = Object.entries(salesByDate).sort((a, b) => new Date(a[0]) - new Date(b[0]));
+        
+        salesEntries.forEach(([date, value]) => {
+            // Format date for display
+            const formattedDate = new Date(date).toLocaleDateString('en-US', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+            });
+            dates.push(formattedDate);
+            salesValues.push(value);
+        });
+        
+        // Create chart
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('salesTrendChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [{
+                        label: 'Sales Revenue (₹)',
+                        data: salesValues,
+                        backgroundColor: 'rgba(25, 135, 84, 0.2)',
+                        borderColor: 'rgba(25, 135, 84, 1)',
+                        borderWidth: 2,
+                        tension: 0.1,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Revenue (₹)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Green Depo - My Orders</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding-top: 20px;
+            padding-bottom: 20px;
+        }
+        .navbar {
+            background-color: #198754;
+            margin-bottom: 20px;
+        }
+        .navbar-brand, .nav-link {
+            color: white;
+        }
+        .orders-container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .orders-title {
+            color: #198754;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .order-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+        .order-header {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .order-body {
+            padding: 15px;
+        }
+        .order-number {
+            font-weight: 600;
+            color: #198754;
+        }
+        .order-date {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        .order-status {
+            font-weight: 600;
+        }
+        .status-pending {
+            color: #ffc107;
+        }
+        .status-paid {
+            color: #198754;
+        }
+        .status-ready {
+            color: #0d6efd;
+        }
+        .status-completed {
+            color: #198754;
+        }
+        .status-cancelled {
+            color: #dc3545;
+        }
+        .empty-orders {
+            text-align: center;
+            padding: 50px 20px;
+        }
+        .empty-orders i {
+            font-size: 4rem;
+            color: #6c757d;
+            margin-bottom: 20px;
+        }
+        .alert {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">Green Depo</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/consumer-dashboard">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/consumer/my-kart">
+                            <i class="bi bi-cart"></i> My Kart
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/consumer/my-orders">My Orders</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i> <span th:text="${user.firstName}">User</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#">Profile</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form th:action="@{/logout}" method="post">
+                                    <button type="submit" class="dropdown-item">Logout</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h2 class="orders-title">My Orders</h2>
+        
+        <!-- Success/Error Messages -->
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${successMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${errorMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        
+        <!-- Empty Orders Message -->
+        <div th:if="${#lists.isEmpty(orders)}" class="orders-container empty-orders">
+            <i class="bi bi-bag-x"></i>
+            <h3>You have no orders yet</h3>
+            <p>Browse our products and place an order to see them here.</p>
+            <a href="/consumer-dashboard" class="btn btn-success mt-3">
+                <i class="bi bi-shop"></i> Browse Products
+            </a>
+        </div>
+        
+        <!-- Orders List -->
+        <div th:unless="${#lists.isEmpty(orders)}" class="orders-container">
+            <div class="order-card" th:each="order : ${orders}">
+                <div class="order-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="order-number">Order #<span th:text="${order.orderNumber}">ORD-123456</span></div>
+                        <div class="order-date" th:text="${#temporals.format(order.orderDate, 'dd-MM-yyyy HH:mm')}">01-01-2023 12:00</div>
+                    </div>
+                    <div>
+                        <span class="order-status" 
+                              th:classappend="${
+                                order.status == 'PENDING' ? 'status-pending' : 
+                                order.status == 'PAID' ? 'status-paid' : 
+                                order.status == 'READY_FOR_PICKUP' ? 'status-ready' : 
+                                order.status == 'COMPLETED' ? 'status-completed' : 
+                                'status-cancelled'
+                              }"
+                              th:text="${order.status}">PENDING</span>
+                    </div>
+                </div>
+                <div class="order-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h5>Order Items</h5>
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item d-flex justify-content-between align-items-center" 
+                                    th:each="item : ${order.orderItems}">
+                                    <div>
+                                        <span th:text="${item.product.title}">Product Title</span>
+                                        <span class="badge bg-secondary ms-2" th:text="${item.quantity + 'x'}">1x</span>
+                                        <div>
+                                            <small th:text="${'Payment: ' + (item.paymentMethod == 'pre-pickup' ? 'Pre-pickup' : 'On Pickup')}">Payment Method</small>
+                                            <small class="ms-2" th:text="${'Status: ' + item.paymentStatus}">Payment Status</small>
+                                        </div>
+                                    </div>
+                                    <span class="price">₹<span th:text="${item.totalPrice}">Price</span></span>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-md-4">
+                            <h5>Order Summary</h5>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Subtotal:</span>
+                                <span>₹<span th:text="${order.totalAmount}">0.00</span></span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Tax (12%):</span>
+                                <span>₹<span th:text="${order.taxAmount}">0.00</span></span>
+                            </div>
+                            <div class="d-flex justify-content-between fw-bold">
+                                <span>Total:</span>
+                                <span>₹<span th:text="${order.finalAmount}">0.00</span></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-end mt-3">
+                        <a th:href="@{'/consumer/order/' + ${order.orderNumber}}" class="btn btn-outline-success me-2">
+                            <i class="bi bi-eye"></i> View Details
+                        </a>
+                        
+                        <!-- Payment button for PENDING orders with pre-pickup payment -->
+                        <a th:if="${order.status == 'PENDING' && #lists.size(order.orderItems.?[paymentMethod == 'pre-pickup' and paymentStatus != 'PAID']) > 0}"
+                           th:href="@{'/consumer/payment/' + ${order.orderNumber}}" 
+                           class="btn btn-success">
+                            <i class="bi bi-credit-card"></i> Complete Payment
+                        </a>
+                        
+                        <!-- Finalize Order button for READY_FOR_PICKUP orders -->
+                        <form th:if="${order.status == 'READY_FOR_PICKUP'}" 
+                              th:action="@{/consumer/finalize-order}" 
+                              method="post" 
+                              class="d-inline">
+                            <input type="hidden" name="orderNumber" th:value="${order.orderNumber}" />
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i> Finalize Order
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

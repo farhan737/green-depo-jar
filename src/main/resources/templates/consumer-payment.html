@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Green Depo - Payment</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding-top: 20px;
+            padding-bottom: 20px;
+        }
+        .navbar {
+            background-color: #198754;
+            margin-bottom: 20px;
+        }
+        .navbar-brand, .nav-link {
+            color: white;
+        }
+        .payment-container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .payment-title {
+            color: #198754;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .product-image {
+            height: 80px;
+            width: 80px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+        .product-title {
+            font-weight: 600;
+            color: #198754;
+        }
+        .price {
+            font-weight: 600;
+            color: #198754;
+        }
+        .badge-custom {
+            background-color: #198754;
+            color: white;
+        }
+        .summary-container {
+            background-color: #e9f7ef;
+            border-radius: 10px;
+            padding: 20px;
+        }
+        .summary-title {
+            color: #198754;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .summary-total {
+            font-weight: 600;
+            font-size: 1.2rem;
+            border-top: 1px solid #198754;
+            padding-top: 10px;
+            margin-top: 10px;
+        }
+        .qr-code-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .qr-code {
+            max-width: 200px;
+            margin: 0 auto;
+        }
+        .alert {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">Green Depo</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/consumer-dashboard">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/consumer/my-kart">
+                            <i class="bi bi-cart"></i> My Kart
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/consumer/my-orders">My Orders</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i> <span th:text="${user.firstName}">User</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#">Profile</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form th:action="@{/logout}" method="post">
+                                    <button type="submit" class="dropdown-item">Logout</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h2 class="payment-title">Complete Your Payment</h2>
+        
+        <!-- Success/Error Messages -->
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${successMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${errorMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-8">
+                <div class="payment-container">
+                    <h4>Order #<span th:text="${order.orderNumber}">ORD-123456</span></h4>
+                    <p>Please complete payment for the following items:</p>
+                    
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Product</th>
+                                <th scope="col">Price</th>
+                                <th scope="col">Quantity</th>
+                                <th scope="col">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="item : ${prePickupItems}">
+                                <td>
+                                    <div class="d-flex">
+                                        <img th:if="${!item.product.images.empty}" 
+                                             th:src="@{'/product-image/' + ${item.product.productId} + '/0'}" 
+                                             class="product-image me-3" alt="Product Image">
+                                        <img th:if="${item.product.images.empty}" 
+                                             src="https://via.placeholder.com/80x80?text=No+Image" 
+                                             class="product-image me-3" alt="No Image">
+                                        <div>
+                                            <span class="product-title" th:text="${item.product.title}">Product Title</span>
+                                            <div>
+                                                <span class="badge bg-info me-1" th:text="${item.product.productType}">Type</span>
+                                                <span class="badge bg-primary" th:text="${item.product.productName}">Name</span>
+                                            </div>
+                                            <small th:text="${item.product.weight + ' ' + item.product.weightUnit}">Weight</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="price">₹<span th:text="${item.unitPrice}">Price</span></td>
+                                <td th:text="${item.quantity}">1</td>
+                                <td class="price">₹<span th:text="${item.totalPrice}">Total</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <div class="qr-code-container">
+                        <h5>Scan QR Code to Complete Payment</h5>
+                        <p>For demonstration purposes only</p>
+                        <div class="qr-code" id="qrcode"></div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 mt-4">
+                        <form th:action="@{/consumer/complete-payment}" method="post">
+                            <input type="hidden" name="orderNumber" th:value="${order.orderNumber}">
+                            <button type="submit" class="btn btn-success btn-lg w-100">
+                                <i class="bi bi-check-circle"></i> Complete Payment
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="summary-container">
+                    <h4 class="summary-title">Payment Summary</h4>
+                    <div class="summary-item">
+                        <span>Subtotal</span>
+                        <span class="price">₹<span th:text="${order.totalAmount}">0.00</span></span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Tax (12%)</span>
+                        <span class="price">₹<span th:text="${order.taxAmount}">0.00</span></span>
+                    </div>
+                    <div class="summary-item summary-total">
+                        <span>Total</span>
+                        <span class="price">₹<span th:text="${order.finalAmount}">0.00</span></span>
+                    </div>
+                    <div class="mt-4">
+                        <h5>Payment Information</h5>
+                        <p><strong>Order Number:</strong> <span th:text="${order.orderNumber}">ORD-123456</span></p>
+                        <p><strong>Order Date:</strong> <span th:text="${#temporals.format(order.orderDate, 'dd-MM-yyyy HH:mm')}">01-01-2023</span></p>
+                        <p><strong>Payment Method:</strong> Pre-pickup Payment</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            // Generate QR code
+            var orderNumber = /*[[${order.orderNumber}]]*/ 'ORD-123456';
+            var qrUrl = window.location.origin + '/consumer/order/' + orderNumber;
+            
+            new QRCode(document.getElementById("qrcode"), {
+                text: qrUrl,
+                width: 200,
+                height: 200,
+                colorDark: "#198754",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H,
+            });
+            
+            // For demo purposes - clicking on QR code completes payment
+            document.getElementById('qrcode').addEventListener('click', function() {
+                document.querySelector('form[action*="complete-payment"]').submit();
+            });
+        });
+    </script>
+</body>
+</html>

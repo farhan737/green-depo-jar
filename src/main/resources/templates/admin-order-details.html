@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Details - Green Depo Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-success">
+        <div class="container">
+            <a class="navbar-brand" href="#">Green Depo Admin</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin-dashboard">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/farmers">Farmers</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/consumers">Consumers</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/products">Products</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/logout">Logout</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Order Details</h1>
+            <a th:href="@{/admin/consumer/{uniqueId}(uniqueId=${order.consumer.uniqueId})}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Consumer
+            </a>
+        </div>
+        
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${successMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${errorMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Order Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table">
+                            <tr>
+                                <th style="width: 40%">Order Number</th>
+                                <td th:text="${order.orderNumber}">ORD123456</td>
+                            </tr>
+                            <tr>
+                                <th>Date</th>
+                                <td th:text="${#temporals.format(order.orderDate, 'dd-MM-yyyy HH:mm')}">01-01-2023 12:00</td>
+                            </tr>
+                            <tr>
+                                <th>Status</th>
+                                <td>
+                                    <span th:class="${'badge ' + (order.status == 'COMPLETED' ? 'bg-success' : (order.status == 'PENDING' ? 'bg-warning' : 'bg-info'))}"
+                                          th:text="${order.status}">Status</span>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Consumer Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table">
+                            <tr>
+                                <th style="width: 40%">Name</th>
+                                <td th:text="${order.consumer.firstName + ' ' + order.consumer.lastName}">John Doe</td>
+                            </tr>
+                            <tr>
+                                <th>Phone Number</th>
+                                <td th:text="${order.consumer.phoneNumber}">1234567890</td>
+                            </tr>
+                            <tr>
+                                <th>Email</th>
+                                <td th:text="${order.consumer.email}">john@example.com</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Order Items</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Farmer</th>
+                                <th>Price</th>
+                                <th>Quantity</th>
+                                <th>Subtotal</th>
+                                <th>Payment Method</th>
+                                <th>Payment Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="item : ${order.orderItems}">
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <img th:if="${!item.product.images.empty}" th:src="@{/product-image/{productId}/0(productId=${item.product.productId})}" 
+                                             alt="Product Image" class="img-thumbnail me-2" style="max-width: 50px;">
+                                        <span th:text="${item.product.title}">Product Title</span>
+                                    </div>
+                                </td>
+                                <td th:text="${item.product.farmer.firstName + ' ' + item.product.farmer.lastName}">Farmer Name</td>
+                                <td th:text="${'₹' + item.price}">₹100</td>
+                                <td th:text="${item.quantity}">1</td>
+                                <td th:text="${'₹' + item.subtotal}">₹100</td>
+                                <td>
+                                    <span th:class="${'badge ' + (item.paymentMethod == 'PRE_PICKUP' ? 'bg-primary' : 'bg-info')}"
+                                          th:text="${item.paymentMethod}">Payment Method</span>
+                                </td>
+                                <td>
+                                    <span th:class="${'badge ' + (item.paymentStatus == 'PAID' ? 'bg-success' : 'bg-warning')}"
+                                          th:text="${item.paymentStatus}">Payment Status</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Order Summary</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 offset-md-6">
+                        <table class="table">
+                            <tr>
+                                <th>Subtotal</th>
+                                <td class="text-end" th:text="${'₹' + order.totalAmount}">₹500</td>
+                            </tr>
+                            <tr>
+                                <th>Tax (12%)</th>
+                                <td class="text-end" th:text="${'₹' + order.taxAmount}">₹60</td>
+                            </tr>
+                            <tr class="table-active">
+                                <th>Total</th>
+                                <td class="text-end fw-bold" th:text="${'₹' + order.finalAmount}">₹560</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

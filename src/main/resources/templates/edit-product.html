@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Green Depo - Edit Product</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .sidebar {
+            background-color: #198754;
+            color: white;
+            height: 100vh;
+            position: fixed;
+            padding-top: 20px;
+        }
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 10px 20px;
+            margin: 5px 0;
+        }
+        .sidebar .nav-link:hover {
+            color: white;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .sidebar .nav-link.active {
+            color: white;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-left: 4px solid white;
+        }
+        .sidebar .nav-link i {
+            margin-right: 10px;
+        }
+        .content {
+            margin-left: 250px;
+            padding: 20px;
+        }
+        .user-info {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 20px;
+        }
+        .user-info .username {
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+        }
+        .user-info .user-type {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        .form-card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+        .image-preview {
+            position: relative;
+            margin-bottom: 15px;
+        }
+        .image-preview img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+        .remove-image {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: rgba(255, 0, 0, 0.7);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 sidebar">
+                <div class="user-info">
+                    <div class="username" sec:authentication="name">Username</div>
+                    <div class="user-type">Farmer</div>
+                </div>
+                
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/farmer-dashboard}">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" th:href="@{/farmer/products}">
+                            <i class="bi bi-cart"></i> My Products
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="bi bi-graph-up"></i> Sales
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="bi bi-people"></i> Customers
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="bi bi-gear"></i> Settings
+                        </a>
+                    </li>
+                    <li class="nav-item mt-5">
+                        <form th:action="@{/logout}" method="post">
+                            <button type="submit" class="nav-link border-0 bg-transparent">
+                                <i class="bi bi-box-arrow-right"></i> Logout
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="col-md-10 content">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>Edit Product</h2>
+                    <a th:href="@{/farmer/products}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Back to Products
+                    </a>
+                </div>
+                
+                <!-- Error message -->
+                <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <span th:text="${error}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                
+                <!-- Product Form -->
+                <div class="form-card">
+                    <form th:action="@{'/farmer/products/edit/' + ${product.productId}}" method="post" enctype="multipart/form-data">
+                        <!-- Item Selection -->
+                        <div class="mb-3">
+                            <label for="productType" class="form-label">Product Type*</label>
+                            <select class="form-select" id="productType" name="productType" required>
+                                <option value="" selected disabled>Select Product Type</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="productName" class="form-label">Product Name*</label>
+                            <select class="form-select" id="productName" name="productName" required>
+                                <option value="" selected disabled>Select Product Name</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Title -->
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Title*</label>
+                            <input type="text" class="form-control" id="title" name="title" required 
+                                   placeholder="Enter a descriptive title for your product" th:value="${product.title}">
+                            <small class="text-muted">A short, descriptive title for your product</small>
+                        </div>
+                        
+                        <!-- Description -->
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description (Optional)</label>
+                            <textarea class="form-control" id="description" name="description" rows="3" 
+                                      placeholder="Enter details about your product" th:text="${product.description}"></textarea>
+                            <small class="text-muted">Provide additional information about your product</small>
+                        </div>
+                        
+                        <!-- Current Images -->
+                        <div class="mb-3" th:if="${!product.images.empty}">
+                            <label class="form-label">Current Images</label>
+                            <div class="row">
+                                <div class="col-md-3 mb-3" th:each="image, stat : ${product.images}">
+                                    <div class="image-preview">
+                                        <img th:src="@{'/product-image/' + ${product.productId} + '/' + ${stat.index}}" alt="Product Image">
+                                        <button type="button" class="remove-image" th:onclick="'confirmRemoveImage(this)'" 
+                                                th:data-image-id="${image.id}">×</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Add New Images -->
+                        <div class="mb-3">
+                            <label for="images" class="form-label">Add New Images (Optional)</label>
+                            <input type="file" class="form-control" id="images" name="images" multiple accept="image/*">
+                            <small class="text-muted">Upload additional product images (JPG, PNG)</small>
+                        </div>
+                        
+                        <!-- Weight and Price -->
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="weightUnit" class="form-label">Weight Unit</label>
+                                <select class="form-select" id="weightUnit" name="weightUnit" required>
+                                    <option value="g" th:selected="${product.weightUnit == 'g'}">Grams (g)</option>
+                                    <option value="kg" th:selected="${product.weightUnit == 'kg'}">Kilograms (kg)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="weight" class="form-label">Weight</label>
+                                <input type="number" class="form-control" id="weight" name="weight" 
+                                       step="0.01" min="0.01" required th:value="${product.weight}">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="price" class="form-label">Price (₹)</label>
+                                <input type="number" class="form-control" id="price" name="price" 
+                                       step="0.01" min="0.01" required th:value="${product.price}">
+                            </div>
+                        </div>
+                        
+                        <!-- Stock and Purchase Limit -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="availableStock" class="form-label">Available Stock Units*</label>
+                                <input type="number" class="form-control" id="availableStock" name="availableStock" 
+                                       min="0" required th:value="${product.availableStock}">
+                                <small class="text-muted">Total number of units available for sale</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="purchaseLimit" class="form-label">Purchase Limit Per Consumer*</label>
+                                <input type="number" class="form-control" id="purchaseLimit" name="purchaseLimit" 
+                                       min="1" required th:value="${product.purchaseLimit}">
+                                <small class="text-muted">Maximum units a single consumer can purchase</small>
+                            </div>
+                        </div>
+                        
+                        <!-- Pickup Location -->
+                        <div class="mb-3">
+                            <label for="pickupLocation" class="form-label">Pickup Location</label>
+                            <select class="form-select" id="pickupLocation" name="pickupLocation" required onchange="toggleCustomLocation()">
+                                <option value="profile" th:selected="${product.pickupLocation == 'profile'}">Use Profile Location</option>
+                                <option value="custom" th:selected="${product.pickupLocation == 'custom'}">Custom Location</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Custom Location Fields (initially hidden) -->
+                        <div id="customLocationFields" style="display: none;">
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label for="state" class="form-label">State</label>
+                                    <select class="form-select" id="state" name="state">
+                                        <option value="">Select State</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="district" class="form-label">District</label>
+                                    <select class="form-select" id="district" name="district">
+                                        <option value="">Select District</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="city" class="form-label">City</label>
+                                    <input type="text" class="form-control" id="city" name="city" 
+                                           th:value="${product.city}">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="locationLink" class="form-label">Location Link</label>
+                                <input type="text" class="form-control" id="locationLink" name="locationLink" 
+                                       placeholder="Google Maps link or coordinates" th:value="${product.locationLink}">
+                                <small class="text-muted">Provide a Google Maps link to your exact location</small>
+                            </div>
+                        </div>
+                        
+                        <!-- Payment Option -->
+                        <div class="mb-3">
+                            <label for="paymentOption" class="form-label">Payment Option</label>
+                            <select class="form-select" id="paymentOption" name="paymentOption" required>
+                                <option value="on-pickup" th:selected="${product.paymentOption == 'on-pickup'}">On Pickup</option>
+                                <option value="pre-pickup" th:selected="${product.paymentOption == 'pre-pickup'}">Pre-Pickup Payment</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Submit Button -->
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">Update Product</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function toggleCustomLocation() {
+            const pickupLocation = document.getElementById('pickupLocation').value;
+            const customLocationFields = document.getElementById('customLocationFields');
+            
+            if (pickupLocation === 'custom') {
+                customLocationFields.style.display = 'block';
+                document.getElementById('state').required = true;
+                document.getElementById('district').required = true;
+                document.getElementById('city').required = true;
+                document.getElementById('locationLink').required = true;
+            } else {
+                customLocationFields.style.display = 'none';
+                document.getElementById('state').required = false;
+                document.getElementById('district').required = false;
+                document.getElementById('city').required = false;
+                document.getElementById('locationLink').required = false;
+            }
+        }
+        
+        // Run on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            toggleCustomLocation();
+            
+            // Get product state and district from Thymeleaf
+            const productState = "[[${product.state}]]";
+            const productDistrict = "[[${product.district}]]";
+            const productType = "[[${product.productType}]]";
+            const productName = "[[${product.productName}]]";
+            
+            // Try multiple paths to find the states and districts data
+            const possibleStatePaths = [
+                '/data/states-and-districts.json',
+                '/static/data/states-and-districts.json',
+                '/states-and-districts.json',
+                '/js/states-and-districts.json',
+                '/resources/data/states-and-districts.json'
+            ];
+            
+            // Function to populate state/district dropdowns with data
+            function populateStateDropdowns(data) {
+                const stateSelect = document.getElementById('state');
+                const districtSelect = document.getElementById('district');
+                
+                // Populate states dropdown
+                data.states.forEach(stateData => {
+                    const option = document.createElement('option');
+                    option.value = stateData.state;
+                    option.textContent = stateData.state;
+                    if (stateData.state === productState) {
+                        option.selected = true;
+                    }
+                    stateSelect.appendChild(option);
+                });
+                
+                // If we have a state, populate the districts
+                if (productState) {
+                    const stateData = data.states.find(state => state.state === productState);
+                    if (stateData && stateData.districts) {
+                        stateData.districts.forEach(district => {
+                            const option = document.createElement('option');
+                            option.value = district;
+                            option.textContent = district;
+                            if (district === productDistrict) {
+                                option.selected = true;
+                            }
+                            districtSelect.appendChild(option);
+                        });
+                    }
+                }
+                
+                // Add event listener to state dropdown
+                stateSelect.addEventListener('change', function() {
+                    // Clear district dropdown
+                    districtSelect.innerHTML = '<option value="">Select District</option>';
+                    
+                    // Find selected state
+                    const selectedState = this.value;
+                    if (!selectedState) return;
+                    
+                    // Find districts for selected state
+                    const stateData = data.states.find(state => state.state === selectedState);
+                    if (stateData && stateData.districts) {
+                        // Populate district dropdown
+                        stateData.districts.forEach(district => {
+                            const option = document.createElement('option');
+                            option.value = district;
+                            option.textContent = district;
+                            districtSelect.appendChild(option);
+                        });
+                    }
+                });
+            }
+            
+            // Try each path until one works for states and districts
+            function tryNextStatePath(index) {
+                if (index >= possibleStatePaths.length) {
+                    console.error('Failed to load states and districts from all paths');
+                    alert('Failed to load states and districts data. Please refresh the page or contact support.');
+                    return;
+                }
+                
+                fetch(possibleStatePaths[index])
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Successfully loaded states and districts from: ' + possibleStatePaths[index]);
+                        populateStateDropdowns(data);
+                    })
+                    .catch(error => {
+                        console.warn('Failed to load from ' + possibleStatePaths[index] + ': ' + error.message);
+                        tryNextStatePath(index + 1);
+                    });
+            }
+            
+            // Start trying paths for states and districts
+            tryNextStatePath(0);
+            
+            // Try multiple paths to find the product types and products data
+            const possibleProductPaths = [
+                '/data/type-and-product.json',
+                '/static/data/type-and-product.json',
+                '/type-and-product.json',
+                '/js/type-and-product.json',
+                '/resources/data/type-and-product.json'
+            ];
+            
+            // Function to populate product type/name dropdowns
+            function populateProductDropdowns(data) {
+                const productTypeSelect = document.getElementById('productType');
+                const productNameSelect = document.getElementById('productName');
+                
+                // Populate product types dropdown
+                data.types.forEach(typeData => {
+                    const option = document.createElement('option');
+                    option.value = typeData.type;
+                    option.textContent = typeData.type;
+                    if (typeData.type === productType) {
+                        option.selected = true;
+                    }
+                    productTypeSelect.appendChild(option);
+                });
+                
+                // If we have a product type, populate the product names
+                if (productType) {
+                    const typeData = data.types.find(type => type.type === productType);
+                    if (typeData && typeData.products) {
+                        typeData.products.forEach(product => {
+                            const option = document.createElement('option');
+                            option.value = product;
+                            option.textContent = product;
+                            if (product === productName) {
+                                option.selected = true;
+                            }
+                            productNameSelect.appendChild(option);
+                        });
+                    }
+                }
+                
+                // Add event listener to product type dropdown
+                productTypeSelect.addEventListener('change', function() {
+                    // Clear product name dropdown
+                    productNameSelect.innerHTML = '<option value="">Select Product Name</option>';
+                    
+                    // Find selected product type
+                    const selectedType = this.value;
+                    if (!selectedType) return;
+                    
+                    // Find products for selected type
+                    const typeData = data.types.find(type => type.type === selectedType);
+                    if (typeData && typeData.products) {
+                        // Populate product name dropdown
+                        typeData.products.forEach(product => {
+                            const option = document.createElement('option');
+                            option.value = product;
+                            option.textContent = product;
+                            productNameSelect.appendChild(option);
+                        });
+                    }
+                });
+            }
+            
+            // Try each path until one works for product types
+            function tryNextProductPath(index) {
+                if (index >= possibleProductPaths.length) {
+                    console.error('Failed to load product types from all paths');
+                    alert('Failed to load product types data. Please refresh the page or contact support.');
+                    return;
+                }
+                
+                fetch(possibleProductPaths[index])
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Successfully loaded product types from: ' + possibleProductPaths[index]);
+                        populateProductDropdowns(data);
+                    })
+                    .catch(error => {
+                        console.warn('Failed to load from ' + possibleProductPaths[index] + ': ' + error.message);
+                        tryNextProductPath(index + 1);
+                    });
+            }
+            
+            // Start trying paths for product types
+            tryNextProductPath(0);
+            
+            function confirmRemoveImage(element) {
+                if (confirm('Are you sure you want to remove this image?')) {
+                    const imageId = element.getAttribute('data-image-id');
+                    window.location.href = `/farmer/products/remove-image/${imageId}`;
+                }
+            }
+        });
+    </script>
+</body>
+</html>

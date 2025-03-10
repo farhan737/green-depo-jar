@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Green Depo - Consumer Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding-top: 20px;
+            padding-bottom: 20px;
+        }
+        .navbar {
+            background-color: #198754;
+            margin-bottom: 20px;
+        }
+        .navbar-brand, .nav-link {
+            color: white;
+        }
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            height: 100%;
+            transition: transform 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .card-img-top {
+            height: 200px;
+            object-fit: cover;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+        }
+        .card-title {
+            font-weight: 600;
+            color: #198754;
+        }
+        .badge-custom {
+            background-color: #198754;
+            color: white;
+        }
+        .price {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #198754;
+        }
+        .welcome-banner {
+            background-color: #e9f7ef;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        .filter-section {
+            background-color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        .no-products {
+            text-align: center;
+            padding: 50px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        .card.deleted-product {
+            opacity: 0.7;
+            background-color: #f8f9fa;
+            border: 1px solid #dc3545;
+        }
+        .card.deleted-product .card-title {
+            color: #dc3545;
+        }
+        .deleted-badge {
+            background-color: #dc3545;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">Green Depo</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/consumer-dashboard">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/consumer/my-kart">
+                            <i class="bi bi-cart"></i> My Kart
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/consumer/my-orders">
+                            <i class="bi bi-bag"></i> My Orders
+                        </a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i> <span th:text="${user.firstName}">User</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#">Profile</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form th:action="@{/logout}" method="post">
+                                    <button type="submit" class="dropdown-item">Logout</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Welcome Banner -->
+        <div class="welcome-banner">
+            <h2>Welcome, <span th:text="${user.firstName + ' ' + user.lastName}">User</span>!</h2>
+            <p>Browse and purchase fresh produce directly from farmers in your area.</p>
+        </div>
+
+        <!-- Filter Section -->
+        <div class="filter-section">
+            <div class="row">
+                <div class="col-md-4 mb-2">
+                    <input type="text" class="form-control" id="searchInput" placeholder="Search products...">
+                </div>
+                <div class="col-md-3 mb-2">
+                    <select class="form-select" id="itemFilter">
+                        <option value="">All Items</option>
+                        <option value="productType">By Product Type</option>
+                    </select>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <select class="form-select" id="locationFilter">
+                        <option value="">All Locations</option>
+                        <option th:each="product : ${products}" 
+                                th:value="${product.district}" 
+                                th:text="${product.district}"
+                                th:if="${product.district != null}"></option>
+                    </select>
+                </div>
+                <div class="col-md-2 mb-2">
+                    <button class="btn btn-success w-100" id="filterButton">Filter</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Products Section -->
+        <div th:if="${products.empty}" class="no-products">
+            <h3>No products available at the moment</h3>
+            <p>Please check back later for fresh produce from our farmers.</p>
+        </div>
+
+        <div th:unless="${products.empty}" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id="productsContainer">
+            <div th:each="product : ${products}" class="col product-card">
+                <div th:class="${product.adminDeleted ? 'card h-100 deleted-product' : 'card h-100'}">
+                    <img th:if="${!product.images.empty}" th:src="@{'/product-image/' + ${product.productId} + '/0'}" class="card-img-top" alt="Product Image">
+                    <img th:if="${product.images.empty}" src="https://via.placeholder.com/300x200?text=No+Image" class="card-img-top" alt="No Image">
+                    <div class="card-body">
+                        <h5 class="card-title" th:text="${product.title}">Product Title</h5>
+                        <p class="card-text">
+                            <span th:if="${product.adminDeleted}" class="badge deleted-badge">Deleted</span>
+                            <span class="badge bg-info me-1" th:text="${product.productType}">Product Type</span>
+                            <span class="badge bg-primary" th:text="${product.productName}">Product Name</span>
+                            <span class="badge badge-custom" th:text="${product.weight + ' ' + product.weightUnit}">Weight</span>
+                        </p>
+                        <p class="card-text" th:if="${product.description != null && !product.description.isEmpty() && !product.adminDeleted}" th:text="${#strings.abbreviate(product.description, 100)}">Description</p>
+                        <p class="card-text" th:if="${product.adminDeleted}">This product is no longer available.</p>
+                        <p class="card-text" th:if="${!product.adminDeleted}">
+                            <i class="bi bi-geo-alt-fill text-danger"></i> 
+                            <span th:text="${product.city + ', ' + product.district}">Location</span>
+                        </p>
+                        <p class="card-text" th:if="${!product.adminDeleted}">
+                            <span class="text-muted">Payment: </span>
+                            <span th:text="${product.paymentOption == 'on-pickup' ? 'Pay on pickup' : 'Pre-payment required'}">Payment Option</span>
+                        </p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="price" th:if="${!product.adminDeleted}">₹<span th:text="${product.price}">Price</span></span>
+                            <span th:if="${product.adminDeleted}"></span>
+                            <a th:if="${!product.adminDeleted}" th:href="@{'/consumer/product/' + ${product.productId}}" class="btn btn-outline-success">View Details</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get filter elements
+            const searchInput = document.getElementById('searchInput');
+            const itemFilter = document.getElementById('itemFilter');
+            const locationFilter = document.getElementById('locationFilter');
+            const filterButton = document.getElementById('filterButton');
+            const productsContainer = document.getElementById('productsContainer');
+            const productCards = document.querySelectorAll('.product-card');
+            
+            // Remove duplicate options from location filter
+            const locationSelect = document.getElementById('locationFilter');
+            const optionValues = [];
+            for (let i = 0; i < locationSelect.options.length; i++) {
+                if (optionValues.includes(locationSelect.options[i].value)) {
+                    locationSelect.remove(i);
+                    i--;
+                } else {
+                    optionValues.push(locationSelect.options[i].value);
+                }
+            }
+            
+            // Check if we have JSON data from the server
+            const jsonDataElement = document.getElementById('type-and-product-data');
+            
+            if (jsonDataElement) {
+                try {
+                    // Parse the JSON data from the hidden element
+                    const data = JSON.parse(jsonDataElement.textContent);
+                    console.log('Successfully loaded product types JSON data from server');
+                    populateProductTypeFilter(data);
+                } catch (e) {
+                    console.error('Error parsing product types JSON from server:', e.message);
+                    // If there's an error parsing the JSON from the server, try fetching it
+                    tryNextProductPath(0);
+                }
+            } else {
+                console.log('No product types JSON data found in the page, trying to fetch it');
+                tryNextProductPath(0);
+            }
+            
+            // Fetch the product types and products data
+            const possibleProductPaths = [
+                '/data/type-and-product.json',
+                '/static/data/type-and-product.json',
+                '/type-and-product.json',
+                '/js/type-and-product.json',
+                '/resources/data/type-and-product.json'
+            ];
+            
+            // Function to populate product type filter
+            function populateProductTypeFilter(data) {
+                const productTypeFilter = document.getElementById('itemFilter');
+                
+                // Populate product types dropdown
+                data.types.forEach(typeData => {
+                    const option = document.createElement('option');
+                    option.value = typeData.type;
+                    option.textContent = typeData.type;
+                    productTypeFilter.appendChild(option);
+                });
+                
+                // Add event listener to product type filter
+                productTypeFilter.addEventListener('change', filterItems);
+            }
+            
+            // Try each path until one works for product types
+            function tryNextProductPath(index) {
+                if (index >= possibleProductPaths.length) {
+                    console.error('Failed to load product types from all paths');
+                    alert('Failed to load product types data. Please refresh the page or contact support.');
+                    return;
+                }
+                
+                fetch(possibleProductPaths[index])
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.text(); // Get raw text first
+                    })
+                    .then(text => {
+                        // Try to parse the text as JSON
+                        try {
+                            return JSON.parse(text);
+                        } catch (e) {
+                            console.error('JSON parse error:', e.message);
+                            console.error('Raw response:', text.substring(0, 100) + '...'); // Show first 100 chars
+                            throw new Error('Invalid JSON: ' + e.message);
+                        }
+                    })
+                    .then(data => {
+                        console.log('Successfully loaded product types from: ' + possibleProductPaths[index]);
+                        populateProductTypeFilter(data);
+                    })
+                    .catch(error => {
+                        console.warn('Failed to load from ' + possibleProductPaths[index] + ': ' + error.message);
+                        tryNextProductPath(index + 1);
+                    });
+            }
+            
+            // Filter function
+            function filterItems() {
+                const searchTerm = searchInput.value.toLowerCase();
+                const selectedItem = itemFilter.value.toLowerCase();
+                const selectedLocation = locationFilter.value.toLowerCase();
+                
+                productCards.forEach(card => {
+                    const title = card.querySelector('.card-title').textContent.toLowerCase();
+                    const description = card.querySelector('.card-text:nth-child(3)') ? 
+                                       card.querySelector('.card-text:nth-child(3)').textContent.toLowerCase() : '';
+                    const itemType = card.querySelector('.badge').textContent.toLowerCase();
+                    const productType = card.querySelector('.bg-info') ? 
+                                       card.querySelector('.bg-info').textContent.toLowerCase() : '';
+                    const location = card.querySelector('.bi-geo-alt-fill').nextSibling.textContent.toLowerCase();
+                    
+                    const matchesSearch = title.includes(searchTerm) || description.includes(searchTerm);
+                    const matchesItem = selectedItem === '' || 
+                                      itemType.includes(selectedItem) || 
+                                      productType.includes(selectedItem);
+                    const matchesLocation = selectedLocation === '' || location.includes(selectedLocation);
+                    
+                    if (matchesSearch && matchesItem && matchesLocation) {
+                        card.style.display = '';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            }
+            
+            // Add event listener to filter button
+            filterButton.addEventListener('click', filterItems);
+        });
+    </script>
+    
+    <!-- Hidden element containing the JSON data from the server -->
+    <div id="type-and-product-data" style="display: none;" th:text="${typeAndProductJson}"></div>
+    
+    <!-- Error message if JSON loading failed -->
+    <div th:if="${jsonError}" class="alert alert-danger" role="alert">
+        Error loading product types data: <span th:text="${jsonError}"></span>
+    </div>
+</body>
+</html>

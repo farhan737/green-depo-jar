@@ -1,0 +1,69 @@
+{
+   "types":[  
+      {  
+         "type":"Cereals",
+         "products":[  
+            "Wheat",
+            "Rice",
+            "Maize",
+            "Barley",
+            "Millets (Bajra, Jowar, Ragi)"
+         ]
+      },
+      {  
+         "type":"Pulses",
+         "products":[  
+            "Chickpeas",
+            "Pigeon Pea (Tur/Arhar)",
+            "Green Gram (Moong)",
+            "Black Gram (Urad)",
+            "Lentils"
+         ]
+      },
+      {  
+         "type":"Oilseeds",
+         "products":[  
+            "Groundnut",
+            "Mustard",
+            "Sesame",
+            "Soybean",
+            "Sunflower"
+         ]
+      },
+      {  
+         "type":"Spices",
+         "products":[  
+            "Turmeric",
+            "Black Pepper",
+            "Coriander",
+            "Cumin",
+            "Cardamom",
+            "Cloves"
+         ]
+      },
+      {  
+         "type":"Dry Fruits & Nuts",
+         "products":[  
+            "Almonds",
+            "Cashew Nuts",
+            "Walnuts",
+            "Raisins",
+            "Pistachios"
+         ]
+      },
+      {  
+         "type":"Beverage Crops",
+         "products":[  
+            "Tea",
+            "Coffee"
+         ]
+      },
+      {  
+         "type":"Fibers",
+         "products":[  
+            "Cotton",
+            "Jute"
+         ]
+      }
+   ]
+}

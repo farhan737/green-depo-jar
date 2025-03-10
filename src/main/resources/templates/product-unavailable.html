@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Unavailable - Green Depo</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        .product-unavailable-container {
+            max-width: 600px;
+            margin: 100px auto;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
+            text-align: center;
+        }
+        
+        .product-unavailable-icon {
+            font-size: 80px;
+            color: #ffc107;
+            margin-bottom: 20px;
+        }
+        
+        .product-unavailable-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        
+        .product-unavailable-message {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        .btn-browse {
+            background-color: #28a745;
+            color: white;
+            padding: 10px 30px;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        
+        .btn-browse:hover {
+            background-color: #218838;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="product-unavailable-container">
+            <div class="product-unavailable-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h1 class="product-unavailable-title">Product Unavailable</h1>
+            <p class="product-unavailable-message" th:text="${message}">This product is no longer available.</p>
+            <a href="/consumer/products" class="btn btn-browse">Browse Other Products</a>
+        </div>
+    </div>
+
+    <script src="https://kit.fontawesome.com/a076d05399.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

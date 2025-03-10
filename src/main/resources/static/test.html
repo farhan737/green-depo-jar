@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Static Resource Test</title>
+</head>
+<body>
+    <h1>Static Resource Test</h1>
+    <p>If you can see this page, static resources are being served correctly.</p>
+    
+    <script>
+        // Test loading the JSON file
+        fetch('/static/data/states-and-districts.json')
+            .then(response => {
+                document.write('<p>Status for /static/data/states-and-districts.json: ' + response.status + '</p>');
+                return response.ok ? response.json() : null;
+            })
+            .then(data => {
+                if (data) {
+                    document.write('<p>Successfully loaded JSON from /static/data/states-and-districts.json</p>');
+                    document.write('<p>Number of states: ' + data.states.length + '</p>');
+                }
+            })
+            .catch(error => {
+                document.write('<p>Error loading from /static/data/states-and-districts.json: ' + error.message + '</p>');
+            });
+            
+        fetch('/data/states-and-districts.json')
+            .then(response => {
+                document.write('<p>Status for /data/states-and-districts.json: ' + response.status + '</p>');
+                return response.ok ? response.json() : null;
+            })
+            .then(data => {
+                if (data) {
+                    document.write('<p>Successfully loaded JSON from /data/states-and-districts.json</p>');
+                    document.write('<p>Number of states: ' + data.states.length + '</p>');
+                }
+            })
+            .catch(error => {
+                document.write('<p>Error loading from /data/states-and-districts.json: ' + error.message + '</p>');
+            });
+    </script>
+</body>
+</html>

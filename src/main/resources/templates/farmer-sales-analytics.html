@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Green Depo - Sales Analytics</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .sidebar {
+            background-color: #198754;
+            color: white;
+            height: 100vh;
+            position: fixed;
+            padding-top: 20px;
+        }
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 10px 20px;
+            margin: 5px 0;
+        }
+        .sidebar .nav-link:hover {
+            color: white;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .sidebar .nav-link.active {
+            color: white;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-left: 4px solid white;
+        }
+        .sidebar .nav-link i {
+            margin-right: 10px;
+        }
+        .content {
+            margin-left: 250px;
+            padding: 20px;
+        }
+        .analytics-card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .stats-card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .stats-card i {
+            font-size: 2rem;
+            color: #198754;
+            margin-bottom: 10px;
+        }
+        .stats-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+        .stats-card p {
+            color: #6c757d;
+        }
+        .user-info {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 20px;
+        }
+        .user-info .username {
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+        }
+        .user-info .user-type {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        .product-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 sidebar">
+                <div class="user-info">
+                    <div class="username" sec:authentication="name">Username</div>
+                    <div class="user-type">Farmer</div>
+                </div>
+                
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/farmer-dashboard}">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/farmer/products}">
+                            <i class="bi bi-cart"></i> My Products
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/farmer/orders}">
+                            <i class="bi bi-bag"></i> Orders
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" th:href="@{/farmer/sales-analytics}">
+                            <i class="bi bi-graph-up"></i> Sales Analytics
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="bi bi-gear"></i> Settings
+                        </a>
+                    </li>
+                    <li class="nav-item mt-5">
+                        <form th:action="@{/logout}" method="post">
+                            <button type="submit" class="nav-link border-0 bg-transparent">
+                                <i class="bi bi-box-arrow-right"></i> Logout
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="col-md-10 content">
+                <div class="analytics-card">
+                    <h2><i class="bi bi-graph-up text-success me-2"></i>Sales Analytics</h2>
+                    <p>Track your product sales performance and analyze trends.</p>
+                </div>
+                
+                <!-- Sales Overview -->
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="stats-card">
+                            <i class="bi bi-currency-dollar"></i>
+                            <h3 th:text="${#numbers.formatDecimal(totalSales, 0, 'COMMA', 2, 'POINT')}">0.00</h3>
+                            <p>Total Sales Revenue</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stats-card">
+                            <i class="bi bi-cart-check"></i>
+                            <h3 th:text="${#lists.size(products)}">0</h3>
+                            <p>Total Products</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stats-card">
+                            <i class="bi bi-percent"></i>
+                            <h3 th:text="${#lists.isEmpty(products) ? '0%' : #numbers.formatDecimal(totalSales / #lists.size(products), 0, 'COMMA', 2, 'POINT') + ' ₹'}">0.00 ₹</h3>
+                            <p>Average Revenue per Product</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Sales Chart -->
+                <div class="analytics-card mt-4">
+                    <h4 class="mb-3">Sales Overview</h4>
+                    <div class="chart-container">
+                        <canvas id="salesChart"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Product Sales Table -->
+                <div class="analytics-card mt-4">
+                    <h4 class="mb-3">Product Sales Performance</h4>
+                    
+                    <div th:if="${#lists.isEmpty(products)}" class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i> You don't have any products listed yet. 
+                        <a th:href="@{/farmer/products/create}" class="alert-link">Add your first product</a> to start tracking sales.
+                    </div>
+                    
+                    <div th:unless="${#lists.isEmpty(products)}" class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-success">
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Type</th>
+                                    <th>Price (₹)</th>
+                                    <th>Units Sold</th>
+                                    <th>Revenue (₹)</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="product : ${products}">
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div th:if="${!#lists.isEmpty(product.images)}" style="width: 40px; height: 40px; overflow: hidden; border-radius: 4px; margin-right: 10px;">
+                                                <img th:src="@{'/product-image/' + ${product.productId} + '/0'}" alt="Product Image" style="width: 100%; height: 100%; object-fit: cover;">
+                                            </div>
+                                            <div th:unless="${!#lists.isEmpty(product.images)}" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background-color: #e9ecef; border-radius: 4px; margin-right: 10px;">
+                                                <i class="bi bi-image text-muted"></i>
+                                            </div>
+                                            <span th:text="${product.title}">Product Name</span>
+                                        </div>
+                                    </td>
+                                    <td th:text="${product.productType + ' - ' + product.productName}">Type</td>
+                                    <td th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 2, 'POINT')}">0.00</td>
+                                    <td th:text="${quantitySoldPerProduct.containsKey(product) ? quantitySoldPerProduct.get(product) : 0}">0</td>
+                                    <td th:text="${salesPerProduct.containsKey(product) ? #numbers.formatDecimal(salesPerProduct.get(product), 0, 'COMMA', 2, 'POINT') : '0.00'}">0.00</td>
+                                    <td>
+                                        <a th:href="@{'/farmer/product-analytics/' + ${product.productId}}" class="btn btn-sm btn-outline-success">
+                                            <i class="bi bi-bar-chart-line me-1"></i> Analytics
+                                        </a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:inline="javascript">
+        // Get product data from Thymeleaf
+        const products = /*[[${products}]]*/ [];
+        const salesPerProductId = /*[[${salesPerProductId}]]*/ {};
+        
+        // Prepare data for chart
+        const productLabels = [];
+        const salesData = [];
+        
+        // Convert Map to arrays for Chart.js
+        products.forEach(product => {
+            productLabels.push(product.title);
+            salesData.push(salesPerProductId[product.productId] || 0);
+        });
+        
+        // Create chart
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('salesChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: productLabels,
+                    datasets: [{
+                        label: 'Sales Revenue (₹)',
+                        data: salesData,
+                        backgroundColor: 'rgba(25, 135, 84, 0.7)',
+                        borderColor: 'rgba(25, 135, 84, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Revenue (₹)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Products'
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

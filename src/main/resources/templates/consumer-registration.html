@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Green Depo - Consumer Registration</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding-top: 30px;
+            padding-bottom: 30px;
+        }
+        .container {
+            max-width: 800px;
+        }
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: #0d6efd;
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+        }
+        .form-label {
+            font-weight: 500;
+        }
+        .btn-primary {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+        }
+        .btn-primary:hover {
+            background-color: #0b5ed7;
+            border-color: #0b5ed7;
+        }
+        .alert {
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="card-header text-center">
+                <h2>Consumer Registration</h2>
+            </div>
+            <div class="card-body">
+                <div th:if="${error}" class="alert alert-danger" role="alert" th:text="${error}"></div>
+                
+                <form th:action="@{/register/consumer}" method="post">
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="firstName" class="form-label">First Name*</label>
+                            <input type="text" class="form-control" id="firstName" name="firstName" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="middleName" class="form-label">Middle Name</label>
+                            <input type="text" class="form-control" id="middleName" name="middleName">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="lastName" class="form-label">Last Name*</label>
+                            <input type="text" class="form-control" id="lastName" name="lastName" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label for="username" class="form-label">Username*</label>
+                            <input type="text" class="form-control" id="username" name="username" required>
+                            <div class="form-text">Choose a unique username for your account</div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="password" class="form-label">Password*</label>
+                            <input type="password" class="form-control" id="password" name="password" 
+                                   pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$" 
+                                   title="Password must contain at least 8 characters, including uppercase, lowercase, and numbers" required>
+                            <div class="form-text">Password must contain at least 8 characters, including uppercase, lowercase, and numbers</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="confirmPassword" class="form-label">Confirm Password*</label>
+                            <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="phoneNumber" class="form-label">Phone Number*</label>
+                            <input type="tel" class="form-control" id="phoneNumber" name="phoneNumber" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="email" class="form-label">Email Address*</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="dateOfBirth" class="form-label">Date of Birth*</label>
+                        <input type="date" class="form-control" id="dateOfBirth" name="dateOfBirth" required>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="state" class="form-label">State*</label>
+                            <select class="form-select" id="state" name="state" required>
+                                <option value="">Select State</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="district" class="form-label">District*</label>
+                            <select class="form-select" id="district" name="district" required>
+                                <option value="">Select District</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="city" class="form-label">City/Town*</label>
+                            <input type="text" class="form-control" id="city" name="city" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="locationLink" class="form-label">Location Link*</label>
+                        <input type="url" class="form-control" id="locationLink" name="locationLink" 
+                               placeholder="e.g., Google Maps link to your location" required>
+                        <div class="form-text">Provide a Google Maps link to your exact location</div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="/register" class="btn btn-secondary me-md-2">Back</a>
+                        <button type="submit" class="btn btn-primary">Create Account</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if we have JSON data from the server
+            const jsonDataElement = document.getElementById('states-and-districts-data');
+            
+            if (jsonDataElement) {
+                try {
+                    // Parse the JSON data from the hidden element
+                    const data = JSON.parse(jsonDataElement.textContent);
+                    console.log('Successfully loaded JSON data from server');
+                    populateDropdowns(data);
+                } catch (e) {
+                    console.error('Error parsing JSON from server:', e.message);
+                    // If there's an error parsing the JSON from the server, try fetching it
+                    tryNextPath(0);
+                }
+            } else {
+                console.log('No JSON data found in the page, trying to fetch it');
+                tryNextPath(0);
+            }
+            
+            // Try multiple paths to find the states and districts data
+            const possiblePaths = [
+                '/api/states-and-districts',
+                '/data/states-and-districts.json',
+                '/static/data/states-and-districts.json',
+                '/states-and-districts.json'
+            ];
+            
+            // Function to populate dropdowns with data
+            function populateDropdowns(data) {
+                const stateSelect = document.getElementById('state');
+                const districtSelect = document.getElementById('district');
+                
+                // Populate states dropdown
+                data.states.forEach(stateData => {
+                    const option = document.createElement('option');
+                    option.value = stateData.state;
+                    option.textContent = stateData.state;
+                    stateSelect.appendChild(option);
+                });
+                
+                // Add event listener to state dropdown
+                stateSelect.addEventListener('change', function() {
+                    // Clear district dropdown
+                    districtSelect.innerHTML = '<option value="">Select District</option>';
+                    
+                    // Find selected state
+                    const selectedState = this.value;
+                    if (!selectedState) return;
+                    
+                    // Find districts for selected state
+                    const stateData = data.states.find(state => state.state === selectedState);
+                    if (stateData && stateData.districts) {
+                        // Populate district dropdown
+                        stateData.districts.forEach(district => {
+                            const option = document.createElement('option');
+                            option.value = district;
+                            option.textContent = district;
+                            districtSelect.appendChild(option);
+                        });
+                    }
+                });
+            }
+            
+            // Try each path until one works
+            function tryNextPath(index) {
+                if (index >= possiblePaths.length) {
+                    console.error('Failed to load states and districts from all paths');
+                    alert('Failed to load states and districts data. Please refresh the page or contact support.');
+                    return;
+                }
+                
+                console.log('Trying to fetch from path:', possiblePaths[index]);
+                
+                // Use a cache-busting query parameter to avoid caching issues
+                const cacheBuster = '?_=' + new Date().getTime();
+                const url = possiblePaths[index] + cacheBuster;
+                
+                fetch(url)
+                    .then(response => {
+                        if (!response.ok) {
+                            console.log('Response not OK for path:', possiblePaths[index], 'Status:', response.status);
+                            throw new Error('Network response was not ok');
+                        }
+                        console.log('Successfully fetched from path:', possiblePaths[index]);
+                        return response.text(); // Get raw text first
+                    })
+                    .then(text => {
+                        // Try to parse the text as JSON
+                        try {
+                            return JSON.parse(text);
+                        } catch (e) {
+                            console.error('JSON parse error:', e.message);
+                            console.error('Raw response:', text.substring(0, 100) + '...'); // Show first 100 chars
+                            throw new Error('Invalid JSON: ' + e.message);
+                        }
+                    })
+                    .then(data => {
+                        console.log('Data loaded successfully from:', possiblePaths[index]);
+                        populateDropdowns(data);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching from path:', possiblePaths[index], 'Error:', error.message);
+                        // Try next path
+                        tryNextPath(index + 1);
+                    });
+            }
+        });
+    </script>
+    
+    <!-- Hidden element containing the JSON data from the server -->
+    <div id="states-and-districts-data" style="display: none;" th:text="${statesAndDistrictsJson}"></div>
+    
+    <!-- Error message if JSON loading failed -->
+    <div th:if="${jsonError}" class="alert alert-danger" role="alert">
+        Error loading JSON data: <span th:text="${jsonError}"></span>
+    </div>
+</body>
+</html>

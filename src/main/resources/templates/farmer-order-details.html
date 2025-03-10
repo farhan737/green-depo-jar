@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Green Depo - Order Details</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding-top: 20px;
+            padding-bottom: 20px;
+        }
+        .navbar {
+            background-color: #198754;
+            margin-bottom: 20px;
+        }
+        .navbar-brand, .nav-link {
+            color: white;
+        }
+        .order-container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .order-title {
+            color: #198754;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .order-header {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .order-number {
+            font-weight: 600;
+            color: #198754;
+        }
+        .order-date {
+            color: #6c757d;
+        }
+        .order-status {
+            font-weight: 600;
+        }
+        .status-pending {
+            color: #ffc107;
+        }
+        .status-paid {
+            color: #198754;
+        }
+        .status-ready {
+            color: #0d6efd;
+        }
+        .status-completed {
+            color: #198754;
+        }
+        .status-cancelled {
+            color: #dc3545;
+        }
+        .product-image {
+            height: 80px;
+            width: 80px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+        .product-title {
+            font-weight: 600;
+            color: #198754;
+        }
+        .price {
+            font-weight: 600;
+            color: #198754;
+        }
+        .summary-container {
+            background-color: #e9f7ef;
+            border-radius: 10px;
+            padding: 20px;
+        }
+        .summary-title {
+            color: #198754;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .summary-total {
+            font-weight: 600;
+            font-size: 1.2rem;
+            border-top: 1px solid #198754;
+            padding-top: 10px;
+            margin-top: 10px;
+        }
+        .alert {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">Green Depo</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/farmer-dashboard">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/farmer/products">My Products</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/farmer/orders">Orders</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i> <span th:text="${user.firstName}">User</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#">Profile</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form th:action="@{/logout}" method="post">
+                                    <button type="submit" class="dropdown-item">Logout</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="order-title">Order Details</h2>
+            <a href="/farmer/orders" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Orders
+            </a>
+        </div>
+        
+        <!-- Success/Error Messages -->
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${successMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${errorMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        
+        <!-- Order Header -->
+        <div class="order-header">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="order-number">Order #<span th:text="${order.orderNumber}">ORD-123456</span></div>
+                    <div class="order-date">Placed on <span th:text="${#temporals.format(order.orderDate, 'dd-MM-yyyy HH:mm')}">01-01-2023 12:00</span></div>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <div>
+                        Status: 
+                        <span class="order-status" 
+                              th:classappend="${
+                                order.status == 'PENDING' ? 'status-pending' : 
+                                order.status == 'PAID' ? 'status-paid' : 
+                                order.status == 'READY_FOR_PICKUP' ? 'status-ready' : 
+                                order.status == 'COMPLETED' ? 'status-completed' : 
+                                'status-cancelled'
+                              }"
+                              th:text="${order.status}">PENDING</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-8">
+                <!-- Order Items -->
+                <div class="order-container">
+                    <h4>Your Products in This Order</h4>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Product</th>
+                                    <th scope="col">Price</th>
+                                    <th scope="col">Quantity</th>
+                                    <th scope="col">Total</th>
+                                    <th scope="col">Payment</th>
+                                    <th scope="col">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="item : ${orderItems}">
+                                    <td>
+                                        <div class="d-flex">
+                                            <img th:if="${!item.product.images.empty}" 
+                                                 th:src="@{'/product-image/' + ${item.product.productId} + '/0'}" 
+                                                 class="product-image me-3" alt="Product Image">
+                                            <img th:if="${item.product.images.empty}" 
+                                                 src="https://via.placeholder.com/80x80?text=No+Image" 
+                                                 class="product-image me-3" alt="No Image">
+                                            <div>
+                                                <span class="product-title" th:text="${item.product.title}">Product Title</span>
+                                                <div>
+                                                    <span class="badge bg-info me-1" th:text="${item.product.productType}">Type</span>
+                                                    <span class="badge bg-primary" th:text="${item.product.productName}">Name</span>
+                                                </div>
+                                                <small th:text="${item.product.weight + ' ' + item.product.weightUnit}">Weight</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="price">₹<span th:text="${item.unitPrice}">Price</span></td>
+                                    <td th:text="${item.quantity}">1</td>
+                                    <td class="price">₹<span th:text="${item.totalPrice}">Total</span></td>
+                                    <td>
+                                        <div>
+                                            <span th:text="${item.paymentMethod == 'pre-pickup' ? 'Pre-pickup' : 'On Pickup'}">Payment Method</span>
+                                        </div>
+                                        <div>
+                                            <span class="badge" 
+                                                  th:classappend="${item.paymentStatus == 'PAID' ? 'bg-success' : 'bg-warning'}"
+                                                  th:text="${item.paymentStatus}">Status</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <!-- Only show update button for on-pickup payments that are not yet paid -->
+                                        <div th:if="${item.paymentMethod == 'on-pickup' && item.paymentStatus != 'PAID'}">
+                                            <form th:action="@{/farmer/update-payment-status}" method="post">
+                                                <input type="hidden" name="orderItemId" th:value="${item.id}">
+                                                <input type="hidden" name="paymentStatus" value="PAID">
+                                                <button type="submit" class="btn btn-sm btn-success">
+                                                    <i class="bi bi-check-circle"></i> Mark as Paid
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <!-- Consumer Information -->
+                <div class="summary-container mb-4">
+                    <h4 class="summary-title">Consumer Information</h4>
+                    <p><strong>Consumer ID:</strong> <span th:text="${order.consumer.uniqueId}">CONS123</span></p>
+                    <p><strong>Name:</strong> <span th:text="${order.consumer.firstName + ' ' + order.consumer.lastName}">John Doe</span></p>
+                    <p><strong>Phone:</strong> <span th:text="${order.consumer.phoneNumber}">1234567890</span></p>
+                    <p><strong>Email:</strong> <span th:text="${order.consumer.email}">email@example.com</span></p>
+                </div>
+                
+                <!-- Order Summary -->
+                <div class="summary-container">
+                    <h4 class="summary-title">Order Summary</h4>
+                    <div class="summary-item">
+                        <span>Your Products Total</span>
+                        <span class="price">₹<span th:text="${farmerProductsTotal}">0.00</span></span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Order Total (All Products)</span>
+                        <span class="price">₹<span th:text="${order.finalAmount}">0.00</span></span>
+                    </div>
+                    
+                    <!-- Payment Instructions -->
+                    <div class="mt-4">
+                        <h5>Payment Instructions</h5>
+                        <ul>
+                            <li>For "Pre-pickup" items, payment is processed online before pickup.</li>
+                            <li>For "On-pickup" items, collect payment at the time of pickup.</li>
+                            <li>Mark "On-pickup" items as paid once you receive payment.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

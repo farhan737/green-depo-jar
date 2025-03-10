@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Green Depo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+    <style>
+        .card-counter {
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            background-color: #fff;
+            height: 100px;
+            border-radius: 5px;
+            transition: .3s linear all;
+            margin-bottom: 20px;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        
+        .card-counter.primary {
+            background-color: #007bff;
+            color: #FFF;
+        }
+        
+        .card-counter.success {
+            background-color: #28a745;
+            color: #FFF;
+        }
+        
+        .card-counter.info {
+            background-color: #17a2b8;
+            color: #FFF;
+        }
+        
+        .card-counter.danger {
+            background-color: #dc3545;
+            color: #FFF;
+        }
+        
+        .card-counter .count-numbers {
+            position: absolute;
+            right: 20px;
+            top: 15px;
+            font-size: 32px;
+            display: block;
+        }
+        
+        .card-counter .count-name {
+            position: absolute;
+            right: 20px;
+            bottom: 15px;
+            font-style: italic;
+            text-transform: capitalize;
+            opacity: 0.8;
+            display: block;
+            font-size: 18px;
+        }
+        
+        .card-counter i {
+            font-size: 4em;
+            opacity: 0.3;
+            margin-left: 10px;
+        }
+        
+        .deleted-count {
+            font-size: 12px;
+            position: absolute;
+            right: 20px;
+            top: 50px;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-success">
+        <div class="container">
+            <a class="navbar-brand" href="#">Green Depo Admin</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/admin-dashboard">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/farmers">Farmers</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/consumers">Consumers</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/products">Products</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <form th:action="@{/logout}" method="post">
+                            <button type="submit" class="nav-link border-0 bg-transparent">Logout</button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <h1 class="mb-4">Admin Dashboard</h1>
+        
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card-counter primary">
+                    <i class="bi bi-people"></i>
+                    <span class="count-numbers" th:text="${farmers.size()}">0</span>
+                    <span class="deleted-count" th:if="${deletedFarmers > 0}" th:text="${deletedFarmers + ' deleted'}">0 deleted</span>
+                    <span class="count-name">Farmers</span>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card-counter success">
+                    <i class="bi bi-person"></i>
+                    <span class="count-numbers" th:text="${consumers.size()}">0</span>
+                    <span class="deleted-count" th:if="${deletedConsumers > 0}" th:text="${deletedConsumers + ' deleted'}">0 deleted</span>
+                    <span class="count-name">Consumers</span>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card-counter info">
+                    <i class="bi bi-box"></i>
+                    <span class="count-numbers" th:text="${products.size()}">0</span>
+                    <span class="deleted-count" th:if="${deletedProducts > 0}" th:text="${deletedProducts + ' deleted'}">0 deleted</span>
+                    <span class="count-name">Products</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row" th:if="${deletedFarmers > 0 || deletedConsumers > 0 || deletedProducts > 0}">
+            <div class="col-12">
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <span>There are deleted items that can be restored. Visit the respective sections to restore them.</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Recent Farmers</h5>
+                        <a href="/admin/farmers" class="btn btn-sm btn-primary">View All</a>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Phone</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="farmer : ${farmers.size() > 0 ? farmers.subList(0, farmers.size() > 5 ? 5 : farmers.size()) : farmers}">
+                                    <td th:text="${farmer.firstName + ' ' + farmer.lastName}">John Doe</td>
+                                    <td th:text="${farmer.phoneNumber}">1234567890</td>
+                                    <td>
+                                        <a th:href="@{/admin/farmer/{uniqueId}(uniqueId=${farmer.uniqueId})}" class="btn btn-sm btn-info">View</a>
+                                    </td>
+                                </tr>
+                                <tr th:if="${farmers.empty}">
+                                    <td colspan="3" class="text-center">No farmers found</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Recent Consumers</h5>
+                        <a href="/admin/consumers" class="btn btn-sm btn-primary">View All</a>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Phone</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="consumer : ${consumers.size() > 0 ? consumers.subList(0, consumers.size() > 5 ? 5 : consumers.size()) : consumers}">
+                                    <td th:text="${consumer.firstName + ' ' + consumer.lastName}">Jane Doe</td>
+                                    <td th:text="${consumer.phoneNumber}">1234567890</td>
+                                    <td>
+                                        <a th:href="@{/admin/consumer/{uniqueId}(uniqueId=${consumer.uniqueId})}" class="btn btn-sm btn-info">View</a>
+                                    </td>
+                                </tr>
+                                <tr th:if="${consumers.empty}">
+                                    <td colspan="3" class="text-center">No consumers found</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Recent Products</h5>
+                        <a href="/admin/products" class="btn btn-sm btn-primary">View All</a>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Type</th>
+                                    <th>Price</th>
+                                    <th>Farmer</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="product : ${products.size() > 0 ? products.subList(0, products.size() > 5 ? 5 : products.size()) : products}">
+                                    <td th:text="${product.title}">Product Title</td>
+                                    <td th:text="${product.productType}">Type</td>
+                                    <td th:text="${'₹' + product.price}">₹100</td>
+                                    <td th:text="${product.farmer.firstName + ' ' + product.farmer.lastName}">Farmer Name</td>
+                                    <td>
+                                        <a th:href="@{/admin/product/{productId}(productId=${product.productId})}" class="btn btn-sm btn-info">View</a>
+                                    </td>
+                                </tr>
+                                <tr th:if="${products.empty}">
+                                    <td colspan="5" class="text-center">No products found</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error - Green Depo</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding-top: 50px;
+        }
+        .error-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            text-align: center;
+        }
+        .error-icon {
+            font-size: 80px;
+            color: #dc3545;
+            margin-bottom: 20px;
+        }
+        .error-details {
+            margin-top: 30px;
+            text-align: left;
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="error-container">
+            <div class="error-icon">⚠️</div>
+            <h1 class="mb-4">Oops! Something went wrong</h1>
+            <p class="lead" th:text="${message != null ? message : 'An unexpected error occurred.'}">An unexpected error occurred.</p>
+            
+            <div class="mt-4">
+                <a href="/" class="btn btn-primary">Go to Home Page</a>
+            </div>
+            
+            <div th:if="${status != null && error != null}" class="error-details">
+                <p><strong>Status:</strong> <span th:text="${status}">500</span></p>
+                <p><strong>Error:</strong> <span th:text="${error}">Internal Server Error</span></p>
+                <p th:if="${timestamp != null}"><strong>Timestamp:</strong> <span th:text="${timestamp}">2025-03-04</span></p>
+                <p th:if="${path != null}"><strong>Path:</strong> <span th:text="${path}">/some-path</span></p>
+            </div>
+            
+            <!-- Only show trace in development environment -->
+            <div th:if="${trace != null}" class="error-details mt-3">
+                <p><strong>Stack Trace:</strong></p>
+                <pre th:text="${trace}">Stack trace details</pre>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

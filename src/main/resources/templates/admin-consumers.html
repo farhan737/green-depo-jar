@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Consumers - Green Depo Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+    <style>
+        .deleted-row {
+            background-color: #ffeeee !important;
+            color: #dc3545;
+        }
+        .deleted-badge {
+            background-color: #dc3545;
+            color: white;
+            padding: 0.25em 0.5em;
+            border-radius: 0.25rem;
+            font-size: 0.75em;
+            margin-left: 0.5em;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-success">
+        <div class="container">
+            <a class="navbar-brand" href="#">Green Depo Admin</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin-dashboard">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/farmers">Farmers</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/admin/consumers">Consumers</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/products">Products</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <form th:action="@{/logout}" method="post">
+                            <button type="submit" class="nav-link border-0 bg-transparent">Logout</button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <h1 class="mb-4">Manage Consumers</h1>
+        
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${successMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${errorMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Unique ID</th>
+                                <th>Phone</th>
+                                <th>Email</th>
+                                <th>Location</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="consumer : ${consumers}" th:class="${consumer.adminDeleted ? 'deleted-row' : ''}">
+                                <td th:text="${consumer.firstName + ' ' + consumer.lastName}">John Doe</td>
+                                <td th:text="${consumer.uniqueId}">C12345</td>
+                                <td th:text="${consumer.phoneNumber}">1234567890</td>
+                                <td th:text="${consumer.email}">john@example.com</td>
+                                <td th:text="${consumer.city + ', ' + consumer.state}">City, State</td>
+                                <td>
+                                    <span th:if="${consumer.adminDeleted}" class="deleted-badge">Deleted</span>
+                                    <span th:unless="${consumer.adminDeleted}" class="badge bg-success">Active</span>
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a th:href="@{/admin/consumer/{uniqueId}(uniqueId=${consumer.uniqueId})}" class="btn btn-sm btn-info">
+                                            <i class="bi bi-eye"></i> View
+                                        </a>
+                                        <button th:if="${!consumer.adminDeleted}" type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" th:data-bs-target="'#deleteConsumerModal' + ${consumer.uniqueId}">
+                                            <i class="bi bi-trash"></i> Delete
+                                        </button>
+                                        <button th:if="${consumer.adminDeleted}" type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" th:data-bs-target="'#restoreConsumerModal' + ${consumer.uniqueId}">
+                                            <i class="bi bi-arrow-counterclockwise"></i> Restore
+                                        </button>
+                                    </div>
+                                    
+                                    <!-- Delete Confirmation Modal -->
+                                    <div class="modal fade" th:id="'deleteConsumerModal' + ${consumer.uniqueId}" tabindex="-1" aria-labelledby="deleteConsumerModalLabel" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="deleteConsumerModalLabel">Confirm Delete</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    Are you sure you want to delete consumer <strong th:text="${consumer.firstName + ' ' + consumer.lastName}">John Doe</strong>?
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                    <form th:action="@{/admin/delete-consumer}" method="post">
+                                                        <input type="hidden" name="uniqueId" th:value="${consumer.uniqueId}">
+                                                        <button type="submit" class="btn btn-danger">Delete</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Restore Confirmation Modal -->
+                                    <div class="modal fade" th:id="'restoreConsumerModal' + ${consumer.uniqueId}" tabindex="-1" aria-labelledby="restoreConsumerModalLabel" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="restoreConsumerModalLabel">Confirm Restore</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    Are you sure you want to restore consumer <strong th:text="${consumer.firstName + ' ' + consumer.lastName}">John Doe</strong>?
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                    <form th:action="@{/admin/restore-consumer/{uniqueId}(uniqueId=${consumer.uniqueId})}" method="post">
+                                                        <button type="submit" class="btn btn-success">Restore</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${consumers.empty}">
+                                <td colspan="7" class="text-center">No consumers found</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
