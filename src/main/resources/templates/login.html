@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Green Depo - Login</title>
+    <title>Farmers Fusion - Login</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -235,7 +235,7 @@
             
             <div class="card">
                 <div class="card-header text-center">
-                    <h2 id="loginTitle"><i class="fas fa-leaf me-2"></i>Green Depo Login</h2>
+                    <h2 id="loginTitle"><i class="fas fa-leaf me-2"></i>Farmers Fusion Login</h2>
                 </div>
                 <div class="card-body">
                     <div th:if="${error}" class="alert alert-danger" role="alert">
@@ -243,8 +243,18 @@
                         <span th:text="${error}"></span>
                     </div>
                     
+                    <div th:if="${message}" th:class="'alert alert-' + ${messageType}" role="alert">
+                        <i th:class="'fas ' + (${messageType == 'success'} ? 'fa-check-circle' : 'fa-exclamation-circle') + ' me-2'"></i>
+                        <span th:text="${message}"></span>
+                    </div>
+                    
+                    <div th:if="${param.passwordReset}" class="alert alert-success" role="alert">
+                        <i class="fas fa-check-circle me-2"></i>
+                        <span>Your password has been successfully reset. You can now login with your new password.</span>
+                    </div>
+                    
                     <!-- Consumer Login Form -->
-                    <div id="consumer-login" class="login-form active">
+                    <div id="consumer-login" class="login-form" data-user-type="consumer">
                         <form th:action="@{/login}" method="post">
                             <input type="hidden" name="userType" value="CONSUMER">
                             <div class="mb-4">
@@ -261,6 +271,9 @@
                                     <span class="input-icon"><i class="fas fa-lock"></i></span>
                                     <input type="password" class="form-control icon-input" id="password-consumer" name="password" required>
                                 </div>
+                                <div class="text-end mt-1">
+                                    <a th:href="@{/forgot-password}" class="text-decoration-none small">Forgot Password?</a>
+                                </div>
                             </div>
                             
                             <div class="d-grid gap-2">
@@ -276,7 +289,7 @@
                     </div>
                     
                     <!-- Farmer Login Form -->
-                    <div id="farmer-login" class="login-form">
+                    <div id="farmer-login" class="login-form" data-user-type="farmer">
                         <form th:action="@{/login}" method="post">
                             <input type="hidden" name="userType" value="FARMER">
                             <div class="mb-4">
@@ -292,6 +305,9 @@
                                 <div class="input-group">
                                     <span class="input-icon"><i class="fas fa-lock"></i></span>
                                     <input type="password" class="form-control icon-input" id="password-farmer" name="password" required>
+                                </div>
+                                <div class="text-end mt-1">
+                                    <a th:href="@{/forgot-password}" class="text-decoration-none small">Forgot Password?</a>
                                 </div>
                             </div>
                             
@@ -332,31 +348,63 @@
             // Get all user type options
             const userTypeOptions = document.querySelectorAll('.user-type-option');
             const loginTitle = document.getElementById('loginTitle');
+            const loginForms = document.querySelectorAll('.login-form');
+            
+            // Check for password reset success message
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('passwordReset')) {
+                // Create alert element
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert alert-success alert-dismissible fade show';
+                alertDiv.role = 'alert';
+                alertDiv.innerHTML = `
+                    <i class="fas fa-check-circle me-2"></i>
+                    Your password has been successfully reset. You can now login with your new password.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                `;
+                
+                // Insert alert before the first login form
+                const container = document.querySelector('.container');
+                container.insertBefore(alertDiv, container.firstChild);
+                
+                // Auto dismiss after 5 seconds
+                setTimeout(() => {
+                    const bsAlert = new bootstrap.Alert(alertDiv);
+                    bsAlert.close();
+                }, 5000);
+            }
             
             // Add click event to each option
             userTypeOptions.forEach(option => {
-                option.addEventListener('click', function(e) {
-                    e.preventDefault();
+                option.addEventListener('click', function() {
+                    // Remove active class from all options
+                    userTypeOptions.forEach(opt => opt.classList.remove('active'));
                     
-                    // Get the user type from data attribute
+                    // Add active class to clicked option
+                    this.classList.add('active');
+                    
+                    // Get user type from data attribute
                     const userType = this.getAttribute('data-type');
                     
-                    // Hide all login forms
-                    document.querySelectorAll('.login-form').forEach(form => {
-                        form.classList.remove('active');
+                    // Update login title
+                    loginTitle.innerHTML = userType === 'consumer' 
+                        ? '<i class="fas fa-user me-2"></i>Consumer Login' 
+                        : '<i class="fas fa-leaf me-2"></i>Farmer Login';
+                    
+                    // Show the appropriate login form
+                    loginForms.forEach(form => {
+                        if (form.getAttribute('data-user-type') === userType) {
+                            form.style.display = 'block';
+                        } else {
+                            form.style.display = 'none';
+                        }
                     });
-                    
-                    // Show the selected login form
-                    document.getElementById(userType + '-login').classList.add('active');
-                    
-                    // Update the title
-                    const icon = userType === 'consumer' ? 
-                        '<i class="fas fa-shopping-basket me-2"></i>' : 
-                        '<i class="fas fa-tractor me-2"></i>';
-                    
-                    loginTitle.innerHTML = '<i class="fas fa-leaf me-2"></i>Green Depo Login';
                 });
             });
+            
+            // Set default form on page load (consumer)
+            document.querySelector('.login-form[data-user-type="consumer"]').style.display = 'block';
+            document.querySelector('.user-type-option[data-type="consumer"]').classList.add('active');
         });
     </script>
 </body>

@@ -17,9 +17,11 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.example.demo.model.Consumer;
 import com.example.demo.model.Farmer;
 import com.example.demo.model.Order;
+import com.example.demo.model.PriceLimit;
 import com.example.demo.model.Product;
 import com.example.demo.model.User;
 import com.example.demo.service.OrderService;
+import com.example.demo.service.PriceLimitService;
 import com.example.demo.service.ProductService;
 import com.example.demo.service.UserService;
 
@@ -36,6 +38,9 @@ public class AdminController {
     
     @Autowired
     private OrderService orderService;
+    
+    @Autowired
+    private PriceLimitService priceLimitService;
     
     @GetMapping("/admin-dashboard")
     public String adminDashboard(Model model, Principal principal) {
@@ -188,6 +193,20 @@ public class AdminController {
         }
     }
     
+    @GetMapping("/admin/market-prices")
+    public String viewMarketPrices(Model model, Principal principal) {
+        User user = userService.findUserByLoginIdentifier(principal.getName());
+        if (user == null || !"ADMIN".equals(user.getUserType())) {
+            return "redirect:/login";
+        }
+        
+        List<PriceLimit> priceLimits = priceLimitService.getAllPriceLimits();
+        model.addAttribute("user", user);
+        model.addAttribute("priceLimits", priceLimits);
+        
+        return "admin-market-prices";
+    }
+    
     @PostMapping("/admin/delete-farmer")
     public String deleteFarmer(@RequestParam String uniqueId, RedirectAttributes redirectAttributes, Principal principal) {
         User user = userService.findUserByLoginIdentifier(principal.getName());
@@ -251,6 +270,82 @@ public class AdminController {
         }
         
         return "redirect:/admin/products";
+    }
+    
+    @PostMapping("/admin/market-prices/save")
+    public String saveMarketPrice(
+            @RequestParam String productType,
+            @RequestParam String productName,
+            @RequestParam Double pricePerGram,
+            @RequestParam Double pricePerKg,
+            RedirectAttributes redirectAttributes,
+            Principal principal) {
+        
+        User user = userService.findUserByLoginIdentifier(principal.getName());
+        if (user == null || !"ADMIN".equals(user.getUserType())) {
+            return "redirect:/login";
+        }
+        
+        try {
+            PriceLimit priceLimit = new PriceLimit(productType, productName, pricePerGram, pricePerKg);
+            priceLimitService.savePriceLimit(priceLimit);
+            redirectAttributes.addFlashAttribute("successMessage", "Price limit saved successfully");
+        } catch (Exception e) {
+            logger.error("Error saving price limit: {}", e.getMessage(), e);
+            redirectAttributes.addFlashAttribute("errorMessage", "Error saving price limit: " + e.getMessage());
+        }
+        
+        return "redirect:/admin/market-prices";
+    }
+    
+    @PostMapping("/admin/market-prices/update")
+    public String updateMarketPrice(
+            @RequestParam Long id,
+            @RequestParam String productType,
+            @RequestParam String productName,
+            @RequestParam Double pricePerGram,
+            @RequestParam Double pricePerKg,
+            RedirectAttributes redirectAttributes,
+            Principal principal) {
+        
+        User user = userService.findUserByLoginIdentifier(principal.getName());
+        if (user == null || !"ADMIN".equals(user.getUserType())) {
+            return "redirect:/login";
+        }
+        
+        try {
+            PriceLimit priceLimit = new PriceLimit(productType, productName, pricePerGram, pricePerKg);
+            priceLimit.setId(id);
+            priceLimitService.savePriceLimit(priceLimit);
+            redirectAttributes.addFlashAttribute("successMessage", "Price limit updated successfully");
+        } catch (Exception e) {
+            logger.error("Error updating price limit: {}", e.getMessage(), e);
+            redirectAttributes.addFlashAttribute("errorMessage", "Error updating price limit: " + e.getMessage());
+        }
+        
+        return "redirect:/admin/market-prices";
+    }
+    
+    @PostMapping("/admin/market-prices/delete")
+    public String deleteMarketPrice(
+            @RequestParam Long id,
+            RedirectAttributes redirectAttributes,
+            Principal principal) {
+        
+        User user = userService.findUserByLoginIdentifier(principal.getName());
+        if (user == null || !"ADMIN".equals(user.getUserType())) {
+            return "redirect:/login";
+        }
+        
+        try {
+            priceLimitService.deletePriceLimit(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Price limit deleted successfully");
+        } catch (Exception e) {
+            logger.error("Error deleting price limit: {}", e.getMessage(), e);
+            redirectAttributes.addFlashAttribute("errorMessage", "Error deleting price limit: " + e.getMessage());
+        }
+        
+        return "redirect:/admin/market-prices";
     }
     
     @PostMapping("/admin/restore-farmer/{uniqueId}")

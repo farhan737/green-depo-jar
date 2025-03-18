@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Posts - Farmers Fusion</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .post-image {
+            width: 100%;
+            max-width: 300px;
+            height: auto;
+            object-fit: cover;
+            margin-bottom: 10px;
+        }
+        .post-image-container {
+            display: inline-block;
+            margin-right: 10px;
+        }
+        .post-card {
+            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .farmer-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .farmer-name {
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .reaction-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: transform 0.2s;
+        }
+        .reaction-btn:hover {
+            transform: scale(1.2);
+        }
+        .reaction-btn.active {
+            color: #28a745;
+        }
+        .reaction-btn.active-dislike {
+            color: #dc3545;
+        }
+        .filter-container {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        .carousel {
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .carousel-item img {
+            max-height: 400px;
+            object-fit: contain;
+            background-color: #f8f9fa;
+        }
+        .carousel-control-prev, .carousel-control-next {
+            background-color: rgba(0,0,0,0.2);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .carousel-control-prev {
+            left: 10px;
+        }
+        .carousel-control-next {
+            right: 10px;
+        }
+        .carousel-indicators {
+            margin-bottom: 0;
+        }
+        @media (max-width: 768px) {
+            .carousel-item img {
+                max-height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar (Conditional based on user type) -->
+    <nav th:if="${userType == 'FARMER'}" class="navbar navbar-expand-lg navbar-dark bg-success">
+        <div class="container">
+            <a class="navbar-brand" href="#">Farmers Fusion</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/farmer-dashboard">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/farmer/products">My Products</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/farmer/orders">My Orders</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/farmer/posts">My Posts</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/farmer/all-posts">All Posts</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <form th:action="@{/logout}" method="post">
+                            <button type="submit" class="nav-link border-0 bg-transparent">Logout</button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <nav th:if="${userType == 'CONSUMER'}" class="navbar navbar-expand-lg navbar-dark bg-success">
+        <div class="container">
+            <a class="navbar-brand" href="#">Farmers Fusion</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/consumer-dashboard">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/consumer/browse-products">Browse Products</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/consumer/my-kart">My Kart</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/consumer/my-orders">My Orders</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/consumer/all-posts">All Posts</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <form th:action="@{/logout}" method="post">
+                            <button type="submit" class="nav-link border-0 bg-transparent">Logout</button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-12">
+                <h2>All Farmer Posts</h2>
+                
+                <!-- Filter Options -->
+                <div class="filter-container">
+                    <h5>Filter Posts</h5>
+                    <div class="btn-group" role="group">
+                        <a th:href="${userType == 'FARMER' ? '/farmer/all-posts?sortBy=recent' : '/consumer/all-posts?sortBy=recent'}" 
+                           class="btn btn-outline-success" th:classappend="${sortBy == 'recent' ? 'active' : ''}">
+                            Most Recent
+                        </a>
+                        <a th:href="${userType == 'FARMER' ? '/farmer/all-posts?sortBy=reactions' : '/consumer/all-posts?sortBy=reactions'}" 
+                           class="btn btn-outline-success" th:classappend="${sortBy == 'reactions' ? 'active' : ''}">
+                            Most Reactions
+                        </a>
+                        <a th:href="${userType == 'FARMER' ? '/farmer/all-posts?sortBy=likes' : '/consumer/all-posts?sortBy=likes'}" 
+                           class="btn btn-outline-success" th:classappend="${sortBy == 'likes' ? 'active' : ''}">
+                            Most Likes
+                        </a>
+                        <a th:href="${userType == 'FARMER' ? '/farmer/all-posts?sortBy=dislikes' : '/consumer/all-posts?sortBy=dislikes'}" 
+                           class="btn btn-outline-success" th:classappend="${sortBy == 'dislikes' ? 'active' : ''}">
+                            Most Dislikes
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- List of Posts -->
+                <div th:if="${posts.empty}" class="alert alert-info">
+                    No posts available.
+                </div>
+                
+                <div th:each="post : ${posts}" class="card post-card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <div class="farmer-info">
+                            <i class="fas fa-user-circle fa-2x"></i>
+                            <span class="farmer-name" th:text="${post.farmer.firstName + ' ' + post.farmer.lastName}">Farmer Name</span>
+                        </div>
+                        <small th:text="${#temporals.format(post.createdAt, 'dd MMM yyyy, HH:mm')}">01 Jan 2023, 12:00</small>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title" th:text="${post.title}">Post Title</h5>
+                        <p class="card-text" th:text="${post.description}">Post description goes here...</p>
+                        
+                        <!-- Post Images as Carousel -->
+                        <div th:if="${!post.images.empty}" class="mt-3">
+                            <div th:id="'postCarousel-' + ${post.id}" class="carousel slide" data-bs-ride="carousel">
+                                <!-- Carousel Indicators -->
+                                <div class="carousel-indicators">
+                                    <button th:each="image, imageStat : ${post.images}" 
+                                            type="button" 
+                                            th:attr="data-bs-target='#postCarousel-' + ${post.id}, data-bs-slide-to=${imageStat.index}" 
+                                            th:class="${imageStat.first} ? 'active' : ''" 
+                                            aria-current="true">
+                                    </button>
+                                </div>
+                                
+                                <!-- Carousel Items -->
+                                <div class="carousel-inner">
+                                    <div th:each="image, imageStat : ${post.images}" 
+                                         th:class="${imageStat.first} ? 'carousel-item active' : 'carousel-item'">
+                                        <img th:src="${image.imagePath}" class="d-block w-100" style="max-height: 400px; object-fit: contain;" alt="Post image">
+                                    </div>
+                                </div>
+                                
+                                <!-- Carousel Controls -->
+                                <button class="carousel-control-prev" type="button" th:attr="data-bs-target='#postCarousel-' + ${post.id}" data-bs-slide="prev">
+                                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                    <span class="visually-hidden">Previous</span>
+                                </button>
+                                <button class="carousel-control-next" type="button" th:attr="data-bs-target='#postCarousel-' + ${post.id}" data-bs-slide="next">
+                                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                    <span class="visually-hidden">Next</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <!-- Like Button -->
+                                <button th:attr="data-post-id=${post.id}, data-user-type=${userType}"
+                                        class="reaction-btn like-btn me-3"
+                                        th:classappend="${#vars['reaction_' + post.id] == 'like' ? 'active' : ''}">
+                                    <i class="fas fa-thumbs-up"></i> <span class="like-count" th:text="${post.likeCount}">0</span>
+                                </button>
+                                
+                                <!-- Dislike Button -->
+                                <button th:attr="data-post-id=${post.id}, data-user-type=${userType}"
+                                        class="reaction-btn dislike-btn"
+                                        th:classappend="${#vars['reaction_' + post.id] == 'dislike' ? 'active-dislike' : ''}">
+                                    <i class="fas fa-thumbs-down"></i> <span class="dislike-count" th:text="${post.dislikeCount}">0</span>
+                                </button>
+                            </div>
+                            <div>
+                                <span class="text-muted">Total Reactions: <span th:text="${post.likeCount + post.dislikeCount}">0</span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Handle like button clicks
+            document.querySelectorAll('.like-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const postId = this.getAttribute('data-post-id');
+                    const userType = this.getAttribute('data-user-type');
+                    reactToPost(postId, true, userType, this);
+                });
+            });
+            
+            // Handle dislike button clicks
+            document.querySelectorAll('.dislike-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const postId = this.getAttribute('data-post-id');
+                    const userType = this.getAttribute('data-user-type');
+                    reactToPost(postId, false, userType, this);
+                });
+            });
+            
+            // Function to handle post reactions
+            function reactToPost(postId, isLike, userType, buttonElement) {
+                const formData = new FormData();
+                formData.append('isLike', isLike);
+                formData.append('userType', userType);
+                
+                fetch(`/api/posts/${postId}/react`, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Update like/dislike counts
+                    const postCard = buttonElement.closest('.card');
+                    postCard.querySelector('.like-count').textContent = data.likeCount;
+                    postCard.querySelector('.dislike-count').textContent = data.dislikeCount;
+                    
+                    // Toggle active class on buttons
+                    const likeBtn = postCard.querySelector('.like-btn');
+                    const dislikeBtn = postCard.querySelector('.dislike-btn');
+                    
+                    if (buttonElement.classList.contains('like-btn')) {
+                        if (buttonElement.classList.contains('active')) {
+                            buttonElement.classList.remove('active');
+                        } else {
+                            buttonElement.classList.add('active');
+                            dislikeBtn.classList.remove('active-dislike');
+                        }
+                    } else {
+                        if (buttonElement.classList.contains('active-dislike')) {
+                            buttonElement.classList.remove('active-dislike');
+                        } else {
+                            buttonElement.classList.add('active-dislike');
+                            likeBtn.classList.remove('active');
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to react to post. Please try again.');
+                });
+            }
+        });
+    </script>
+</body>
+</html>

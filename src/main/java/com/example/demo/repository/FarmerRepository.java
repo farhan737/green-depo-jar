@@ -18,4 +18,7 @@ public interface FarmerRepository extends JpaRepository<Farmer, Long> {
     
     @Query("SELECT f FROM Farmer f WHERE f.adminDeleted = false")
     List<Farmer> findAllActive();
+    
+    @Query("SELECT f FROM Farmer f WHERE f.email = ?1 OR f.username = ?1 OR f.phoneNumber = ?1")
+    Optional<Farmer> findByEmailOrUsernameOrPhoneNumber(String identifier);
 }

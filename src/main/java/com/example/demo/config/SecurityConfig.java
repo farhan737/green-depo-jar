@@ -48,10 +48,13 @@ public class SecurityConfig {
             )
             .authenticationManager(authManager)
             .addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class)
+            .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/home", "/register/**", "/css/**", "/js/**", "/images/**").permitAll()
                 .requestMatchers("/product-image/**").permitAll()
                 .requestMatchers("/login", "/login/adminportal", "/login-success", "/logout-success").permitAll()
+                .requestMatchers("/forgot-password", "/reset-password").permitAll()
+                .requestMatchers("/api/price-limits").authenticated()
                 .requestMatchers("/farmer-dashboard", "/farmer/**").hasRole("FARMER")
                 .requestMatchers("/consumer-dashboard", "/consumer/**").hasRole("CONSUMER")
                 .requestMatchers("/admin-dashboard", "/admin/**").hasRole("ADMIN")

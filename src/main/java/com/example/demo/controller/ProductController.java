@@ -21,6 +21,7 @@ import com.example.demo.model.Farmer;
 import com.example.demo.model.Product;
 import com.example.demo.model.ProductImage;
 import com.example.demo.model.User;
+import com.example.demo.service.PriceLimitService;
 import com.example.demo.service.ProductService;
 import com.example.demo.service.UserService;
 
@@ -35,6 +36,9 @@ public class ProductController {
     
     @Autowired
     private UserService userService;
+    
+    @Autowired
+    private PriceLimitService priceLimitService;
     
     @GetMapping("/products")
     public String viewProducts(Model model, Principal principal) {
@@ -98,6 +102,33 @@ public class ProductController {
         long validImageCount = imageFiles.stream().filter(file -> !file.isEmpty()).count();
         if (validImageCount > 5) {
             redirectAttributes.addFlashAttribute("error", "Maximum 5 product images are allowed");
+            return "redirect:/farmer/products/create";
+        }
+        
+        // Check if price exceeds market price limit
+        if (priceLimitService.isPriceExceedingLimit(productType, productName, weightUnit, weight, price)) {
+            Double maxAllowedPrice = priceLimitService.getMaxAllowedPrice(productType, productName, weightUnit, weight);
+            redirectAttributes.addFlashAttribute("error", 
+                String.format("Price exceeds market limit. Maximum allowed price for %s %s of %s %s is ₹%.2f", 
+                weight, weightUnit, productType, productName, maxAllowedPrice));
+            
+            // Add form data to flash attributes for repopulating the form
+            redirectAttributes.addFlashAttribute("title", title);
+            redirectAttributes.addFlashAttribute("description", description);
+            redirectAttributes.addFlashAttribute("weightUnit", weightUnit);
+            redirectAttributes.addFlashAttribute("weight", weight);
+            redirectAttributes.addFlashAttribute("price", price);
+            redirectAttributes.addFlashAttribute("availableStock", availableStock);
+            redirectAttributes.addFlashAttribute("purchaseLimit", purchaseLimit);
+            redirectAttributes.addFlashAttribute("pickupLocation", pickupLocation);
+            redirectAttributes.addFlashAttribute("state", state);
+            redirectAttributes.addFlashAttribute("district", district);
+            redirectAttributes.addFlashAttribute("city", city);
+            redirectAttributes.addFlashAttribute("locationLink", locationLink);
+            redirectAttributes.addFlashAttribute("paymentOption", paymentOption);
+            redirectAttributes.addFlashAttribute("productType", productType);
+            redirectAttributes.addFlashAttribute("productName", productName);
+            
             return "redirect:/farmer/products/create";
         }
         
@@ -191,6 +222,16 @@ public class ProductController {
         
         if (product == null || !product.getFarmer().getId().equals(farmer.getId())) {
             return "redirect:/farmer/products";
+        }
+        
+        // Check if price exceeds market price limit
+        if (priceLimitService.isPriceExceedingLimit(productType, productName, weightUnit, weight, price)) {
+            Double maxAllowedPrice = priceLimitService.getMaxAllowedPrice(productType, productName, weightUnit, weight);
+            redirectAttributes.addFlashAttribute("error", 
+                String.format("Price exceeds market limit. Maximum allowed price for %s %s of %s %s is ₹%.2f", 
+                weight, weightUnit, productType, productName, maxAllowedPrice));
+            
+            return "redirect:/farmer/products/edit/" + productId;
         }
         
         if ("profile".equals(pickupLocation)) {

@@ -16,4 +16,7 @@ public interface ConsumerRepository extends JpaRepository<Consumer, Long> {
     
     @Query("SELECT c FROM Consumer c WHERE c.adminDeleted = false")
     List<Consumer> findAllActive();
+    
+    @Query("SELECT c FROM Consumer c WHERE c.email = ?1 OR c.username = ?1 OR c.phoneNumber = ?1")
+    Optional<Consumer> findByEmailOrUsernameOrPhoneNumber(String identifier);
 }
