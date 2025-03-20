@@ -222,7 +222,7 @@
                                 <div class="carousel-inner">
                                     <div th:each="image, imageStat : ${post.images}" 
                                          th:class="${imageStat.first} ? 'carousel-item active' : 'carousel-item'">
-                                        <img th:src="${image.imagePath}" class="d-block w-100" style="max-height: 400px; object-fit: contain;" alt="Post image">
+                                        <img th:src="@{'/post-image/' + ${image.id}}" class="d-block w-100" style="max-height: 400px; object-fit: contain;" alt="Post image">
                                     </div>
                                 </div>
                                 

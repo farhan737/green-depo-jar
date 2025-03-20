@@ -1,12 +1,8 @@
 package com.example.demo.service;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -29,17 +25,9 @@ public class FarmerPostService {
     @Autowired
     private PostReactionRepository postReactionRepository;
     
-    private final Path postImagesPath = Paths.get("src/main/resources/static/post-images");
-    
-    // Initialize the directory for post images
+    // Initialize method no longer needs to create a directory
     public void init() {
-        try {
-            if (!Files.exists(postImagesPath)) {
-                Files.createDirectories(postImagesPath);
-            }
-        } catch (IOException e) {
-            throw new RuntimeException("Could not initialize folder for post images", e);
-        }
+        // No need to initialize a directory anymore
     }
     
     // Create a new post with images
@@ -55,15 +43,13 @@ public class FarmerPostService {
             for (MultipartFile image : images) {
                 if (!image.isEmpty() && imageCount < 3) {
                     try {
-                        // Generate a unique filename
-                        String filename = UUID.randomUUID().toString() + "_" + image.getOriginalFilename();
-                        Path targetPath = postImagesPath.resolve(filename);
-                        
-                        // Save the file
-                        Files.copy(image.getInputStream(), targetPath);
+                        // Get image data
+                        String filename = image.getOriginalFilename();
+                        String contentType = image.getContentType();
+                        byte[] data = image.getBytes();
                         
                         // Create and save the image entity
-                        PostImage postImage = new PostImage("/post-images/" + filename);
+                        PostImage postImage = new PostImage(filename, contentType, data);
                         post.addImage(postImage);
                         
                         imageCount++;
@@ -109,17 +95,6 @@ public class FarmerPostService {
         
         if (postOpt.isPresent()) {
             FarmerPost post = postOpt.get();
-            
-            // Delete associated images from filesystem
-            for (PostImage image : post.getImages()) {
-                try {
-                    String filename = image.getImagePath().substring(image.getImagePath().lastIndexOf('/') + 1);
-                    Files.deleteIfExists(postImagesPath.resolve(filename));
-                } catch (IOException e) {
-                    // Log error but continue with deletion
-                    System.err.println("Error deleting image file: " + e.getMessage());
-                }
-            }
             
             // Delete the post (cascades to images and reactions)
             farmerPostRepository.delete(post);

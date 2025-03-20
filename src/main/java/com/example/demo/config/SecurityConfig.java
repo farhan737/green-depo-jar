@@ -52,6 +52,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/home", "/register/**", "/css/**", "/js/**", "/images/**").permitAll()
                 .requestMatchers("/product-image/**").permitAll()
+                .requestMatchers("/post-images/**").permitAll()
                 .requestMatchers("/login", "/login/adminportal", "/login-success", "/logout-success").permitAll()
                 .requestMatchers("/forgot-password", "/reset-password").permitAll()
                 .requestMatchers("/api/price-limits").authenticated()

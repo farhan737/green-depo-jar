@@ -6,6 +6,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
@@ -18,7 +19,14 @@ public class PostImage {
     private Long id;
     
     @Column(nullable = false)
-    private String imagePath;
+    private String fileName;
+    
+    @Column(nullable = false)
+    private String contentType;
+    
+    @Lob
+    @Column(nullable = false, columnDefinition = "LONGBLOB")
+    private byte[] data;
     
     @ManyToOne
     @JoinColumn(name = "post_id", nullable = false)
@@ -29,8 +37,10 @@ public class PostImage {
     }
     
     // Constructor with fields
-    public PostImage(String imagePath) {
-        this.imagePath = imagePath;
+    public PostImage(String fileName, String contentType, byte[] data) {
+        this.fileName = fileName;
+        this.contentType = contentType;
+        this.data = data;
     }
     
     // Getters and Setters
@@ -42,12 +52,28 @@ public class PostImage {
         this.id = id;
     }
 
-    public String getImagePath() {
-        return imagePath;
+    public String getFileName() {
+        return fileName;
     }
 
-    public void setImagePath(String imagePath) {
-        this.imagePath = imagePath;
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+
+    public String getContentType() {
+        return contentType;
+    }
+
+    public void setContentType(String contentType) {
+        this.contentType = contentType;
+    }
+
+    public byte[] getData() {
+        return data;
+    }
+
+    public void setData(byte[] data) {
+        this.data = data;
     }
 
     public FarmerPost getPost() {

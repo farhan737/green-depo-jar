@@ -135,8 +135,8 @@
                         
                         <!-- Post Images -->
                         <div th:if="${!post.images.empty}" class="mt-3">
-                            <div th:each="image : ${post.images}" class="post-image-container">
-                                <img th:src="${image.imagePath}" class="post-image" alt="Post image">
+                            <div th:each="image, imageStat : ${post.images}" class="post-image-container">
+                                <img th:src="@{'/post-image/' + ${image.id}}" class="post-image" alt="Post image">
                             </div>
                         </div>
                     </div>
