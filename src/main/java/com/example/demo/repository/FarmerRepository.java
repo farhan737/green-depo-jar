@@ -14,6 +14,8 @@ public interface FarmerRepository extends JpaRepository<Farmer, Long> {
     
     Optional<Farmer> findByUniqueId(String uniqueId);
     
+    Optional<Farmer> findByUidNumber(String uidNumber);
+    
     boolean existsByUidNumber(String uidNumber);
     
     @Query("SELECT f FROM Farmer f WHERE f.adminDeleted = false")

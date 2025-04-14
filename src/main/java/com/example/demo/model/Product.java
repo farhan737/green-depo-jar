@@ -1,6 +1,7 @@
 package com.example.demo.model;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
@@ -58,14 +59,26 @@ public class Product {
     @Column(nullable = false, length = 1000)
     private String locationLink;
     
-    @Column(nullable = false)
-    private String paymentOption; // "on-pickup" or "pre-pickup"
+    @Column
+    private String paymentMethod; // "On Pickup" or "Pre-Pickup"
+    
+    @Column(name = "payment_option")
+    private String paymentOption;
     
     @Column(nullable = false)
     private Integer availableStock = 0; // Total available stock units
     
     @Column(nullable = false)
     private Integer purchaseLimit = 0; // Maximum units a consumer can purchase
+    
+    @Column
+    private String status = "ACTIVE"; // Status of the product: ACTIVE, INACTIVE, DELETED
+    
+    @Column
+    private Date createdAt;
+    
+    @Column
+    private String imageUrl; // URL to the product image
     
     @Column(nullable = false)
     private Boolean active = true; // Whether the product is active/available
@@ -83,6 +96,10 @@ public class Product {
     @JsonManagedReference("product-images")
     private List<ProductImage> images = new ArrayList<>();
     
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference("product-image-urls")
+    private List<ProductImageUrl> imageUrls = new ArrayList<>();
+    
     @OneToMany(mappedBy = "product")
     @JsonManagedReference("product-orderItems")
     private List<OrderItem> orderItems = new ArrayList<>();
@@ -98,7 +115,8 @@ public class Product {
 
     public Product(String productId, String title, String description, String weightUnit, Double weight, Double price,
                   String pickupLocation, String state, String district, String city, String locationLink,
-                  String paymentOption, Integer availableStock, Integer purchaseLimit, Boolean active, Boolean adminDeleted, String productType, String productName, Farmer farmer) {
+                  String paymentMethod, Integer availableStock, Integer purchaseLimit, String status, Date createdAt, 
+                  String imageUrl, Boolean active, Boolean adminDeleted, String productType, String productName, Farmer farmer) {
         this.productId = productId;
         this.title = title;
         this.description = description;
@@ -110,9 +128,12 @@ public class Product {
         this.district = district;
         this.city = city;
         this.locationLink = locationLink;
-        this.paymentOption = paymentOption;
+        this.paymentMethod = paymentMethod;
         this.availableStock = availableStock;
         this.purchaseLimit = purchaseLimit;
+        this.status = status;
+        this.createdAt = createdAt;
+        this.imageUrl = imageUrl;
         this.active = active;
         this.adminDeleted = adminDeleted;
         this.productType = productType;
@@ -130,6 +151,18 @@ public class Product {
     public void removeImage(ProductImage image) {
         images.remove(image);
         image.setProduct(null);
+    }
+    
+    // Helper method to add an image URL
+    public void addImageUrl(ProductImageUrl imageUrl) {
+        imageUrls.add(imageUrl);
+        imageUrl.setProduct(this);
+    }
+    
+    // Helper method to remove an image URL
+    public void removeImageUrl(ProductImageUrl imageUrl) {
+        imageUrls.remove(imageUrl);
+        imageUrl.setProduct(null);
     }
     
     // Getters and Setters
@@ -229,28 +262,26 @@ public class Product {
         this.locationLink = locationLink;
     }
 
+    public String getPaymentMethod() {
+        return paymentMethod;
+    }
+
+    public void setPaymentMethod(String paymentMethod) {
+        this.paymentMethod = paymentMethod;
+        // Keep payment_option in sync with paymentMethod for backward compatibility
+        this.paymentOption = paymentMethod;
+    }
+    
     public String getPaymentOption() {
         return paymentOption;
     }
 
     public void setPaymentOption(String paymentOption) {
         this.paymentOption = paymentOption;
-    }
-
-    public Boolean getActive() {
-        return active;
-    }
-
-    public void setActive(Boolean active) {
-        this.active = active;
-    }
-
-    public Boolean getAdminDeleted() {
-        return adminDeleted;
-    }
-
-    public void setAdminDeleted(Boolean adminDeleted) {
-        this.adminDeleted = adminDeleted;
+        // Keep paymentMethod in sync with payment_option for backward compatibility
+        if (this.paymentMethod == null) {
+            this.paymentMethod = paymentOption;
+        }
     }
 
     public Integer getAvailableStock() {
@@ -269,6 +300,46 @@ public class Product {
         this.purchaseLimit = purchaseLimit;
     }
     
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+    
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    public Boolean getActive() {
+        return active;
+    }
+
+    public void setActive(Boolean active) {
+        this.active = active;
+    }
+
+    public Boolean getAdminDeleted() {
+        return adminDeleted;
+    }
+
+    public void setAdminDeleted(Boolean adminDeleted) {
+        this.adminDeleted = adminDeleted;
+    }
+
     public String getProductType() {
         return productType;
     }
@@ -307,6 +378,30 @@ public class Product {
 
     public void setImages(List<ProductImage> images) {
         this.images = images;
+    }
+    
+    public List<ProductImageUrl> getImageUrls() {
+        // Sort image URLs by displayOrder if it's not null
+        imageUrls.sort((img1, img2) -> {
+            Integer order1 = img1.getDisplayOrder();
+            Integer order2 = img2.getDisplayOrder();
+            
+            // Handle null display orders
+            if (order1 == null && order2 == null) {
+                return 0;
+            } else if (order1 == null) {
+                return 1;
+            } else if (order2 == null) {
+                return -1;
+            }
+            
+            return order1.compareTo(order2);
+        });
+        return imageUrls;
+    }
+
+    public void setImageUrls(List<ProductImageUrl> imageUrls) {
+        this.imageUrls = imageUrls;
     }
 
     public List<OrderItem> getOrderItems() {

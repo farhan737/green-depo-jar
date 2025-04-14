@@ -1,5 +1,11 @@
 {  
-   "states":[  
+   "states":[
+      {  
+         "state":"bogu",
+         "districts":[  
+            "bogu pur"
+         ]
+      },  
       {  
          "state":"Andhra Pradesh",
          "districts":[  
